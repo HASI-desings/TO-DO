@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Meridian — Task OS</title>
+
+  <!-- ═══════════════════════════════════════════════════════
+       iOS PWA — Native full-screen integration
+       ═══════════════════════════════════════════════════════ -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Meridian" />
+  <meta name="theme-color" content="#050510" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23050510'/%3E%3Ccircle cx='90' cy='90' r='50' fill='none' stroke='%236C63FF' stroke-width='8'/%3E%3Cpath d='M65 90 L82 107 L115 74' stroke='%236C63FF' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+
+  <!-- ═══════════════════════════════════════════════════════
+       DYNAMIC WEB APP MANIFEST via Data URI
+       ═══════════════════════════════════════════════════════ -->
+  <script>
+    (function () {
+      const m = {
+        name: "Meridian — Task OS", short_name: "Meridian",
+        start_url: "./", display: "standalone",
+        background_color: "#050510", theme_color: "#050510",
+        icons: [{ src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23050510'/%3E%3Ccircle cx='256' cy='256' r='140' fill='none' stroke='%236C63FF' stroke-width='24'/%3E%3Cpath d='M186 256L228 298L328 198' stroke='%236C63FF' stroke-width='24' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E", sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }]
+      };
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = URL.createObjectURL(new Blob([JSON.stringify(m)], { type: 'application/json' }));
+      document.head.appendChild(link);
+    })();
+  </script>
+
+  <!-- ═══════════════════════════════════════════════════════
+       EXTERNAL DEPS — Fonts · GSAP · Supabase JS
+       ═══════════════════════════════════════════════════════ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <style>
+    /* ═══════════════════════════════════════════════════════
+       DESIGN TOKEN SYSTEM
+       ═══════════════════════════════════════════════════════ */
+    :root {
+      --void:           #050510;
+      --deep:           #0B0B1E;
+      --surface:        #12122A;
+      --border:         rgba(255,255,255,0.07);
+      --border-bright:  rgba(255,255,255,0.13);
+
+      --iris:           #6C63FF;
+      --iris-glow:      rgba(108,99,255,0.25);
+      --iris-subtle:    rgba(108,99,255,0.10);
+      --coral:          #FF6B6B;
+      --coral-glow:     rgba(255,107,107,0.20);
+      --amber:          #FFB347;
+      --amber-glow:     rgba(255,179,71,0.20);
+      --sage:           #52D9A3;
+      --sage-glow:      rgba(82,217,163,0.20);
+
+      --mesh-a: #1a0533;
+      --mesh-b: #0d1a3d;
+      --mesh-c: #120530;
+      --mesh-d: #030318;
+
+      --font-display: 'Syne', sans-serif;
+      --font-body:    'Inter', sans-serif;
+
+      --text-primary:   rgba(255,255,255,0.92);
+      --text-secondary: rgba(255,255,255,0.50);
+      --text-muted:     rgba(255,255,255,0.28);
+
+      --ease-smooth: cubic-bezier(0.25,0.46,0.45,0.94);
+      --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+      --ease-out:    cubic-bezier(0.16,1,0.3,1);
+
+      --radius-sm:  8px;
+      --radius-md:  14px;
+      --radius-lg:  20px;
+      --radius-xl:  28px;
+      --radius-pill: 999px;
+
+      --glass-bg:     rgba(18,18,42,0.55);
+      --glass-border: 1px solid rgba(255,255,255,0.08);
+      --glass-shadow:
+        0 0 0 1px rgba(255,255,255,0.04),
+        0 4px 6px -1px rgba(0,0,0,0.4),
+        0 20px 40px -8px rgba(0,0,0,0.6),
+        0 0 80px -20px rgba(108,99,255,0.15);
+
+      --sat: env(safe-area-inset-top, 0px);
+      --sab: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* ─── Reset ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; font-size: 16px; -webkit-text-size-adjust: 100%; }
+    body {
+      min-height: 100%; font-family: var(--font-body);
+      background: var(--void); color: var(--text-primary);
+      overflow-x: hidden; -webkit-font-smoothing: antialiased;
+      padding-top: var(--sat); padding-bottom: calc(var(--sab) + 24px);
+      overscroll-behavior: none;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    /* ─── Mesh Background ─── */
+    #mesh-bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, var(--mesh-a) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 70% at 80% 20%, var(--mesh-b) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 50% at 10% 80%, var(--mesh-c) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 80% at 90% 90%, var(--mesh-d) 0%, transparent 55%),
+        var(--void);
+      animation: meshBreathe 18s ease-in-out infinite alternate;
+    }
+    @keyframes meshBreathe {
+      0%   { filter: hue-rotate(0deg) brightness(1); }
+      50%  { filter: hue-rotate(12deg) brightness(1.04); }
+      100% { filter: hue-rotate(-6deg) brightness(0.97); }
+    }
+
+    /* ─── Noise overlay ─── */
+    #noise {
+      position: fixed; inset: 0; z-index: 1; opacity: 0.025; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+    }
+
+    /* ─── Particle canvas ─── */
+    #particle-canvas { position: fixed; inset: 0; z-index: 9999; pointer-events: none; opacity: 0; }
+
+    /* ─── App container ─── */
+    #app {
+      position: relative; z-index: 10;
+      max-width: 520px; margin: 0 auto;
+      min-height: 100vh; display: flex; flex-direction: column;
+      padding: 28px 20px;
+    }
+
+    /* ─── Glass panel ─── */
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      border: var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      border-radius: var(--radius-xl);
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       CONNECTION STATUS BANNER
+       ═══════════════════════════════════════════════════════ */
+    #sync-banner {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 16px; border-radius: var(--radius-md);
+      font-size: 12px; font-weight: 500;
+      margin-bottom: 12px;
+      transition: all 0.3s var(--ease-smooth);
+      border: 1px solid transparent;
+    }
+    #sync-banner.online  { background: rgba(82,217,163,0.1); border-color: rgba(82,217,163,0.25); color: var(--sage); }
+    #sync-banner.offline { background: rgba(255,179,71,0.1);  border-color: rgba(255,179,71,0.25);  color: var(--amber); }
+    #sync-banner.syncing { background: rgba(108,99,255,0.1); border-color: rgba(108,99,255,0.25); color: var(--iris); }
+    #sync-banner.error   { background: rgba(255,107,107,0.1); border-color: rgba(255,107,107,0.25); color: var(--coral); }
+
+    .sync-dot {
+      width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+      background: currentColor;
+    }
+    .sync-dot.pulse { animation: pulseDot 1.6s ease-in-out infinite; }
+    @keyframes pulseDot {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.4; transform: scale(0.6); }
+    }
+
+    /* ═══════════════════════════════════════════════════════
+       HEADER
+       ═══════════════════════════════════════════════════════ */
+    #header {
+      padding: 24px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px; gap: 16px;
+      background: linear-gradient(135deg,
+        rgba(108,99,255,0.12) 0%,
+        rgba(18,18,42,0.55) 60%,
+        rgba(255,107,107,0.05) 100%
+      );
+    }
+    .header-left { flex: 1; min-width: 0; }
+    .app-eyebrow {
+      font-family: var(--font-display); font-size: 10px; font-weight: 700;
+      letter-spacing: 0.2em; text-transform: uppercase; color: var(--iris);
+      margin-bottom: 4px; opacity: 0.8;
+    }
+    .app-title {
+      font-family: var(--font-display); font-size: clamp(26px,5vw,34px);
+      font-weight: 800; line-height: 1.05; letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #fff 30%, rgba(108,99,255,0.9) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
+
+    /* ─── Circular Progress Ring ─── */
+    .progress-ring-wrap {
+      flex-shrink: 0; position: relative;
+      width: 72px; height: 72px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .progress-ring-wrap svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+    .ring-track  { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 5; }
+    .ring-fill   { fill: none; stroke: url(#ringGrad); stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.7s var(--ease-smooth); }
+    .ring-inner  { text-align: center; z-index: 1; position: relative; }
+    .ring-pct    { display: block; font-family: var(--font-display); font-size: 15px; font-weight: 700; line-height: 1; }
+    .ring-label  { display: block; font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; }
+
+    /* ═══════════════════════════════════════════════════════
+       STATS BAR
+       ═══════════════════════════════════════════════════════ */
+    #stats-bar { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 12px; }
+    .stat-card  { padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+    .stat-value { font-family: var(--font-display); font-size: 24px; font-weight: 700; line-height: 1; }
+    .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+
+    /* ═══════════════════════════════════════════════════════
+       ADD TASK PANEL
+       ═══════════════════════════════════════════════════════ */
+    #add-panel { padding: 18px 20px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 14px; }
+    .input-row  { display: flex; gap: 10px; align-items: center; }
+
+    #task-input {
+      flex: 1; background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border); border-radius: var(--radius-md);
+      padding: 13px 16px; font-family: var(--font-body); font-size: 14px;
+      color: var(--text-primary); outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      -webkit-appearance: none;
+    }
+    #task-input::placeholder { color: var(--text-muted); }
+    #task-input:focus {
+      border-color: var(--iris); background: rgba(108,99,255,0.05);
+      box-shadow: 0 0 0 3px var(--iris-glow);
+    }
+
+    .priority-selector { display: flex; gap: 6px; }
+    .priority-btn {
+      flex: 1; padding: 9px 0;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      background: transparent; font-family: var(--font-body);
+      font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+      text-transform: uppercase; cursor: pointer;
+      transition: all 0.18s var(--ease-smooth); color: var(--text-muted);
+    }
+    .priority-btn[data-p="high"]   { color: var(--coral); }
+    .priority-btn[data-p="medium"] { color: var(--amber); }
+    .priority-btn[data-p="low"]    { color: var(--sage);  }
+    .priority-btn.active[data-p="high"]   { background: var(--coral-glow); border-color: var(--coral); box-shadow: 0 0 16px -4px var(--coral); }
+    .priority-btn.active[data-p="medium"] { background: var(--amber-glow); border-color: var(--amber); box-shadow: 0 0 16px -4px var(--amber); }
+    .priority-btn.active[data-p="low"]    { background: var(--sage-glow);  border-color: var(--sage);  box-shadow: 0 0 16px -4px var(--sage);  }
+
+    #add-btn {
+      flex-shrink: 0; width: 46px; height: 46px;
+      border-radius: var(--radius-md); border: none;
+      background: linear-gradient(135deg, var(--iris) 0%, #9B6BFF 100%);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: transform 0.18s var(--ease-spring), box-shadow 0.2s;
+      box-shadow: 0 4px 20px var(--iris-glow), 0 0 0 1px rgba(255,255,255,0.1) inset;
+    }
+    #add-btn:hover  { transform: scale(1.07); box-shadow: 0 6px 28px var(--iris-glow), 0 0 0 1px rgba(255,255,255,0.15) inset; }
+    #add-btn:active { transform: scale(0.93); }
+    #add-btn svg    { width: 20px; height: 20px; stroke: #fff; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ═══════════════════════════════════════════════════════
+       FILTER TABS
+       ═══════════════════════════════════════════════════════ */
+    #filter-tabs { display: flex; gap: 6px; padding: 6px; margin-bottom: 14px; border-radius: var(--radius-lg); }
+    .filter-tab {
+      flex: 1; padding: 9px 8px; border: none; border-radius: var(--radius-md);
+      background: transparent; font-family: var(--font-body); font-size: 12px;
+      font-weight: 500; color: var(--text-muted); cursor: pointer;
+      transition: all 0.2s var(--ease-smooth); letter-spacing: 0.02em;
+    }
+    .filter-tab.active { background: rgba(108,99,255,0.18); color: #fff; box-shadow: 0 0 0 1px rgba(108,99,255,0.3); }
+
+    /* ═══════════════════════════════════════════════════════
+       TASK LIST
+       ═══════════════════════════════════════════════════════ */
+    #task-list { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+
+    /* ─── Empty state ─── */
+    #empty-state { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 14px; }
+    #empty-state.visible { display: flex; }
+    .empty-icon { width: 64px; height: 64px; border-radius: var(--radius-lg); background: var(--iris-subtle); display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
+    .empty-icon svg { width: 28px; height: 28px; stroke: var(--iris); stroke-width: 1.5; fill: none; }
+    .empty-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
+    .empty-sub   { font-size: 13px; color: var(--text-muted); line-height: 1.5; max-width: 240px; }
+
+    /* ═══════════════════════════════════════════════════════
+       TASK ITEM
+       ═══════════════════════════════════════════════════════ */
+    .task-item { padding: 0; overflow: hidden; position: relative; clip-path: inset(0 0 0 0 round 20px); }
+    .task-inner { padding: 16px 18px; display: flex; gap: 14px; align-items: flex-start; }
+
+    /* Priority bar */
+    .task-item::before {
+      content: ''; position: absolute; left: 0; top: 12px; bottom: 12px;
+      width: 3px; border-radius: 0 3px 3px 0; transition: background 0.3s;
+    }
+    .task-item[data-priority="high"]::before   { background: var(--coral); box-shadow: 0 0 12px var(--coral); }
+    .task-item[data-priority="medium"]::before { background: var(--amber); box-shadow: 0 0 12px var(--amber); }
+    .task-item[data-priority="low"]::before    { background: var(--sage);  box-shadow: 0 0 12px var(--sage);  }
+
+    /* Checkbox */
+    .task-check {
+      flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
+      border: 2px solid var(--border-bright); cursor: pointer;
+      position: relative; transition: all 0.25s var(--ease-smooth);
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px; background: transparent;
+    }
+    .task-item[data-priority="high"]   .task-check { border-color: var(--coral); }
+    .task-item[data-priority="medium"] .task-check { border-color: var(--amber); }
+    .task-item[data-priority="low"]    .task-check { border-color: var(--sage);  }
+
+    .task-check svg { position: absolute; width: 12px; height: 12px; stroke: white; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: scale(0.5); transition: all 0.25s var(--ease-spring); }
+    .task-check svg .check-path { stroke-dasharray: 20; stroke-dashoffset: 20; transition: stroke-dashoffset 0.35s var(--ease-smooth); }
+
+    .task-item.done .task-check { background: linear-gradient(135deg,#52D9A3,#6C63FF); border-color: transparent; box-shadow: 0 0 18px rgba(82,217,163,0.4); }
+    .task-item.done .task-check svg { opacity: 1; transform: scale(1); }
+    .task-item.done .task-check svg .check-path { stroke-dashoffset: 0; }
+
+    /* Content */
+    .task-content { flex: 1; min-width: 0; }
+    .task-text { font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--text-primary); transition: color 0.3s; word-break: break-word; }
+    .task-item.done .task-text { text-decoration: line-through; color: var(--text-muted); }
+    .task-meta { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+
+    .priority-pill { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 2px 7px; border-radius: var(--radius-pill); }
+    .task-item[data-priority="high"]   .priority-pill { color: var(--coral); background: var(--coral-glow); }
+    .task-item[data-priority="medium"] .priority-pill { color: var(--amber); background: var(--amber-glow); }
+    .task-item[data-priority="low"]    .priority-pill { color: var(--sage);  background: var(--sage-glow);  }
+
+    .task-time { font-size: 10px; color: var(--text-muted); }
+
+    /* Realtime flash — brief glow when a remote change arrives */
+    @keyframes remoteFlash {
+      0%   { box-shadow: var(--glass-shadow), 0 0 0 2px rgba(108,99,255,0.6); }
+      100% { box-shadow: var(--glass-shadow); }
+    }
+    .task-item.remote-flash { animation: remoteFlash 0.8s var(--ease-smooth) forwards; }
+
+    /* Inline edit */
+    .task-edit-input {
+      width: 100%; background: rgba(255,255,255,0.05);
+      border: 1px solid var(--iris); border-radius: var(--radius-sm);
+      padding: 6px 10px; font-family: var(--font-body); font-size: 14px;
+      font-weight: 500; color: var(--text-primary); outline: none;
+      box-shadow: 0 0 0 3px var(--iris-glow);
+    }
+
+    /* Action buttons */
+    .task-actions { display: flex; gap: 4px; flex-shrink: 0; opacity: 0; transform: translateX(6px); transition: all 0.2s var(--ease-smooth); }
+    .task-item:hover .task-actions,
+    .task-item:focus-within .task-actions { opacity: 1; transform: translateX(0); }
+    .action-btn {
+      width: 32px; height: 32px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: rgba(255,255,255,0.04);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s var(--ease-smooth); color: var(--text-muted);
+    }
+    .action-btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .action-btn.edit:hover { background: var(--iris-subtle); border-color: var(--iris); color: var(--iris); }
+    .action-btn.del:hover  { background: var(--coral-glow);  border-color: var(--coral); color: var(--coral); }
+
+    /* ═══════════════════════════════════════════════════════
+       TOAST
+       ═══════════════════════════════════════════════════════ */
+    #toast {
+      position: fixed; bottom: calc(var(--sab) + 32px); left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(18,18,42,0.95); border: 1px solid var(--border-bright);
+      backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%);
+      padding: 12px 20px; border-radius: var(--radius-pill);
+      font-size: 13px; font-weight: 500; color: var(--text-primary);
+      pointer-events: none; opacity: 0; z-index: 1000; white-space: nowrap;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      transition: opacity 0.25s, transform 0.3s var(--ease-spring);
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ═══════════════════════════════════════════════════════
+       CELEBRATION
+       ═══════════════════════════════════════════════════════ */
+    #celebration {
+      position: fixed; inset: 0; z-index: 900;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none; opacity: 0;
+    }
+    .celebrate-card { text-align: center; padding: 40px 48px; max-width: 320px; }
+    .celebrate-emoji { font-size: 56px; margin-bottom: 16px; display: block; line-height: 1; }
+    .celebrate-title {
+      font-family: var(--font-display); font-size: 26px; font-weight: 800;
+      background: linear-gradient(135deg,#fff,var(--iris));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 8px;
+    }
+    .celebrate-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+    /* ─── Misc ─── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: rgba(108,99,255,0.3); border-radius: 999px; }
+    :focus-visible { outline: 2px solid var(--iris); outline-offset: 2px; }
+  </style>
+</head>
+
+<body>
+  <div id="mesh-bg" aria-hidden="true"></div>
+  <div id="noise"   aria-hidden="true"></div>
+  <canvas id="particle-canvas" aria-hidden="true"></canvas>
+
+  <!-- Celebration overlay -->
+  <div id="celebration" aria-live="polite">
+    <div class="celebrate-card glass-panel">
+      <span class="celebrate-emoji">🎯</span>
+      <h2 class="celebrate-title">All Done.</h2>
+      <p class="celebrate-sub">Every task cleared. Pure execution.</p>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- ══════════════════════════════════════════════════════
+       APP ROOT
+       ══════════════════════════════════════════════════════ -->
+  <main id="app">
+
+    <!-- Sync status banner -->
+    <div id="sync-banner" class="syncing">
+      <span class="sync-dot pulse"></span>
+      <span id="sync-text">Connecting to cloud…</span>
+    </div>
+
+    <!-- Header -->
+    <header id="header" class="glass-panel">
+      <div class="header-left">
+        <p class="app-eyebrow">Task OS</p>
+        <h1 class="app-title">Meridian</h1>
+        <p class="header-subtitle" id="date-display"></p>
+      </div>
+      <div class="progress-ring-wrap" aria-label="Task completion">
+        <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stop-color="#52D9A3"/>
+              <stop offset="100%" stop-color="#6C63FF"/>
+            </linearGradient>
+          </defs>
+          <circle class="ring-track" cx="36" cy="36" r="30"/>
+          <circle class="ring-fill" id="ring-fill" cx="36" cy="36" r="30"
+            stroke-dasharray="188.5" stroke-dashoffset="188.5"/>
+        </svg>
+        <div class="ring-inner">
+          <span class="ring-pct" id="ring-pct">0%</span>
+          <span class="ring-label">Done</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Stats -->
+    <div id="stats-bar">
+      <div class="stat-card glass-panel"><span class="stat-value" id="stat-total">0</span><span class="stat-label">Total</span></div>
+      <div class="stat-card glass-panel"><span class="stat-value" id="stat-done">0</span><span class="stat-label">Done</span></div>
+      <div class="stat-card glass-panel"><span class="stat-value" id="stat-left">0</span><span class="stat-label">Left</span></div>
+    </div>
+
+    <!-- Add task -->
+    <div id="add-panel" class="glass-panel">
+      <div class="input-row">
+        <input type="text" id="task-input" placeholder="What needs to be done…"
+          maxlength="200" aria-label="New task" autocomplete="off" autocorrect="off" spellcheck="false"/>
+        <button id="add-btn" aria-label="Add task">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+      <div class="priority-selector" role="group" aria-label="Priority">
+        <button class="priority-btn active" data-p="high">High</button>
+        <button class="priority-btn"        data-p="medium">Mid</button>
+        <button class="priority-btn"        data-p="low">Low</button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <nav id="filter-tabs" class="glass-panel" role="tablist">
+      <button class="filter-tab active" data-filter="all"    role="tab" aria-selected="true">All</button>
+      <button class="filter-tab"        data-filter="active" role="tab" aria-selected="false">Active</button>
+      <button class="filter-tab"        data-filter="done"   role="tab" aria-selected="false">Done</button>
+      <button class="filter-tab"        data-filter="high"   role="tab" aria-selected="false">🔴 High</button>
+    </nav>
+
+    <!-- Task list -->
+    <section id="task-list" aria-label="Tasks">
+      <div id="empty-state" aria-hidden="true">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </div>
+        <h3 class="empty-title">Nothing here yet</h3>
+        <p class="empty-sub">Add a task above and start executing at full speed.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══════════════════════════════════════════════════════
+       JAVASCRIPT
+       ══════════════════════════════════════════════════════ -->
+  <script>
+  'use strict';
+
+  /* ────────────────────────────────────────────────────────
+     CONFIG — Supabase credentials (auto-injected)
+     ──────────────────────────────────────────────────────── */
+  const SUPABASE_URL    = 'https://yloxybwewqwlbwdiwitf.supabase.co';
+  const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlsb3h5Yndld3F3bGJ3ZGl3aXRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MzM1MTksImV4cCI6MjA5MjQwOTUxOX0.Ur3EGWX9Pvea-7OP0PkIFO6vJe91TEHyvPF1KJGckho';
+  const TABLE           = 'tasks';
+  const LS_KEY          = 'meridian_offline_v1';
+
+  /* ────────────────────────────────────────────────────────
+     SUPABASE CLIENT
+     ──────────────────────────────────────────────────────── */
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+    realtime: { params: { eventsPerSecond: 20 } }
+  });
+
+  /* ────────────────────────────────────────────────────────
+     UTILS
+     ──────────────────────────────────────────────────────── */
+  const Utils = {
+    id:          () => `t_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
+    timeLabel:   ts => new Date(ts).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }),
+    dateDisplay: () => new Date().toLocaleDateString('en-US', { weekday:'long', month:'short', day:'numeric' }),
+    escape:      s  => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'),
+    clamp:       (v,lo,hi) => Math.min(Math.max(v,lo),hi),
+  };
+
+  /* ────────────────────────────────────────────────────────
+     LOCAL CACHE — localStorage fallback when offline
+     ──────────────────────────────────────────────────────── */
+  const Cache = {
+    load()         { try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch { return []; } },
+    save(tasks)    { try { localStorage.setItem(LS_KEY, JSON.stringify(tasks)); } catch {} },
+  };
+
+  /* ────────────────────────────────────────────────────────
+     APP STATE (in-memory, source of truth for UI)
+     ──────────────────────────────────────────────────────── */
+  const State = {
+    tasks:    [],           // full unfiltered list
+    filter:   'all',
+    priority: 'high',
+    online:   false,        // supabase connected?
+    _prevPct: 0,
+    celebShown: false,
+  };
+
+  /* ────────────────────────────────────────────────────────
+     DOM REFS
+     ──────────────────────────────────────────────────────── */
+  const $  = id => document.getElementById(id);
+  const DOM = {
+    app:          $('app'),
+    taskList:     $('task-list'),
+    emptyState:   $('empty-state'),
+    taskInput:    $('task-input'),
+    addBtn:       $('add-btn'),
+    filterTabs:   $('filter-tabs'),
+    ringFill:     $('ring-fill'),
+    ringPct:      $('ring-pct'),
+    statTotal:    $('stat-total'),
+    statDone:     $('stat-done'),
+    statLeft:     $('stat-left'),
+    dateDisplay:  $('date-display'),
+    toast:        $('toast'),
+    celebration:  $('celebration'),
+    canvas:       $('particle-canvas'),
+    syncBanner:   $('sync-banner'),
+    syncText:     $('sync-text'),
+    syncDot:      $('sync-banner').querySelector('.sync-dot'),
+    priorityBtns: document.querySelectorAll('.priority-btn'),
+  };
+
+  /* ────────────────────────────────────────────────────────
+     SYNC BANNER
+     ──────────────────────────────────────────────────────── */
+  const Banner = {
+    set(state, msg) {
+      DOM.syncBanner.className = state;   // 'online' | 'offline' | 'syncing' | 'error'
+      DOM.syncText.textContent = msg;
+      DOM.syncDot.classList.toggle('pulse', state !== 'online');
+    }
+  };
+
+  /* ────────────────────────────────────────────────────────
+     RING
+     ──────────────────────────────────────────────────────── */
+  const CIRC = 2 * Math.PI * 30; // ≈ 188.5
+  function updateRing(pct) {
+    DOM.ringFill.style.strokeDashoffset = CIRC - (pct / 100) * CIRC;
+    DOM.ringPct.textContent = `${pct}%`;
+  }
+
+  /* ────────────────────────────────────────────────────────
+     TOAST
+     ──────────────────────────────────────────────────────── */
+  let _toastTimer;
+  function toast(msg, ms = 2400) {
+    clearTimeout(_toastTimer);
+    DOM.toast.textContent = msg;
+    DOM.toast.classList.add('show');
+    _toastTimer = setTimeout(() => DOM.toast.classList.remove('show'), ms);
+  }
+
+  /* ────────────────────────────────────────────────────────
+     PARTICLES — Canvas confetti burst
+     ──────────────────────────────────────────────────────── */
+  const Particles = (() => {
+    let pts = [], animId;
+    const ctx = DOM.canvas.getContext('2d');
+    const COLS = ['#6C63FF','#FF6B6B','#52D9A3','#FFB347','#fff','#9B6BFF'];
+
+    function resize() { DOM.canvas.width = innerWidth; DOM.canvas.height = innerHeight; }
+
+    return {
+      burst() {
+        resize(); pts = [];
+        const N = Math.min(innerWidth < 480 ? 60 : 120, 150);
+        for (let i = 0; i < N; i++) {
+          pts.push({
+            x: Math.random() * DOM.canvas.width,
+            y: Math.random() * DOM.canvas.height * 0.5,
+            vx: (Math.random()-.5)*7, vy: (Math.random()-.5)*10-5,
+            r: Math.random()*5+2, color: COLS[Math.floor(Math.random()*COLS.length)],
+            a: 1, rot: Math.random()*Math.PI*2, rv: (Math.random()-.5)*0.15,
+            rect: Math.random() > .5
+          });
+        }
+        DOM.canvas.style.opacity = 1;
+        cancelAnimationFrame(animId);
+
+        (function draw() {
+          ctx.clearRect(0,0,DOM.canvas.width,DOM.canvas.height);
+          let alive = 0;
+          pts.forEach(p => {
+            p.x+=p.vx; p.y+=p.vy; p.vy+=0.25; p.vx*=0.99;
+            p.a = Math.max(0, p.a-.008); p.rot+=p.rv;
+            if (p.a<=0) return; alive++;
+            ctx.save(); ctx.globalAlpha=p.a;
+            ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.color;
+            if (p.rect) ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);
+            else { ctx.beginPath(); ctx.arc(0,0,p.r,0,Math.PI*2); ctx.fill(); }
+            ctx.restore();
+          });
+          if (alive>0) animId=requestAnimationFrame(draw);
+          else DOM.canvas.style.opacity=0;
+        })();
+      }
+    };
+  })();
+
+  /* ────────────────────────────────────────────────────────
+     CELEBRATION
+     ──────────────────────────────────────────────────────── */
+  function celebrate() {
+    if (State.celebShown) return;
+    State.celebShown = true;
+    Particles.burst();
+    gsap.fromTo(DOM.celebration,
+      { opacity:0, scale:.8 },
+      { opacity:1, scale:1, duration:.6, ease:'back.out(1.4)',
+        onComplete: () => gsap.to(DOM.celebration, { opacity:0, scale:.9, duration:.5, delay:2.5, ease:'power2.in' })
+      }
+    );
+  }
+
+  /* ────────────────────────────────────────────────────────
+     ANIMATOR
+     ──────────────────────────────────────────────────────── */
+  const Anim = {
+    entrance(els) {
+      if (!els.length) return;
+      gsap.fromTo(els,
+        { opacity:0, y:18, scale:.97 },
+        { opacity:1, y:0, scale:1, duration:.5, stagger:.07, ease:'power3.out', clearProps:'opacity,transform' }
+      );
+    },
+    add(el) {
+      gsap.set(el, { opacity:0, scaleY:0, transformOrigin:'top center', height:0 });
+      el.style.height = 'auto';
+      const h = el.getBoundingClientRect().height;
+      el.style.height = '0px';
+      gsap.timeline()
+        .to(el, { height:h, duration:.32, ease:'power2.out' })
+        .to(el, { scaleY:1, opacity:1, duration:.28, ease:'back.out(1.3)' }, '-=0.1')
+        .set(el, { height:'auto', clearProps:'transform' });
+    },
+    remove(el, cb) {
+      const siblings = [...el.parentElement.children].filter(c => c!==el && c.id!=='empty-state');
+      const rects = siblings.map(s => s.getBoundingClientRect());
+      gsap.to(el, {
+        opacity:0, scaleX:.92, scaleY:0, height:0, marginBottom:0,
+        duration:.32, ease:'power3.in',
+        onComplete: () => {
+          el.remove(); cb && cb();
+          siblings.forEach((s,i) => {
+            if (!s.isConnected) return;
+            const dy = rects[i].top - s.getBoundingClientRect().top;
+            if (Math.abs(dy)<1) return;
+            gsap.fromTo(s, { y:dy }, { y:0, duration:.38, ease:'power3.out', clearProps:'transform' });
+          });
+        }
+      });
+    },
+    toggle(el, done) {
+      const check = el.querySelector('.task-check');
+      const path  = el.querySelector('.check-path');
+      const text  = el.querySelector('.task-text');
+      if (done) {
+        gsap.timeline()
+          .to(check, { scale:1.25, duration:.12, ease:'power2.out' })
+          .to(check, { scale:1,    duration:.25, ease:'back.out(2)' })
+          .to(text,  { opacity:.35, duration:.3 }, '-=0.2');
+        if (path) { path.style.strokeDashoffset='20'; setTimeout(()=>{ path.style.transition='stroke-dashoffset 0.35s ease'; path.style.strokeDashoffset='0'; },80); }
+      } else {
+        gsap.to(text, { opacity:1, duration:.25 });
+        if (path) { path.style.transition='stroke-dashoffset 0.2s ease'; path.style.strokeDashoffset='20'; }
+      }
+    },
+    pulse(el) {
+      gsap.timeline()
+        .to(el, { scale:.9, duration:.1 })
+        .to(el, { scale:1,  duration:.3, ease:'back.out(2)' });
+    },
+    remoteFlash(el) {
+      el.classList.remove('remote-flash');
+      void el.offsetWidth; // reflow
+      el.classList.add('remote-flash');
+      setTimeout(()=>el.classList.remove('remote-flash'), 900);
+    }
+  };
+
+  /* ────────────────────────────────────────────────────────
+     TILT — 3D cursor/gyro effect
+     ──────────────────────────────────────────────────────── */
+  const MAX_DEG = 4;
+  function applyTilt(rx, ry) {
+    gsap.to(DOM.app, { rotateX:rx, rotateY:ry, duration:1.2, ease:'power2.out', transformPerspective:1200, overwrite:'auto' });
+  }
+  document.addEventListener('mousemove', e => {
+    applyTilt(((e.clientY - innerHeight/2) / (innerHeight/2)) * -MAX_DEG,
+              ((e.clientX - innerWidth/2)  / (innerWidth/2))  *  MAX_DEG);
+  });
+  window.addEventListener('deviceorientation', e => {
+    if (e.beta==null) return;
+    applyTilt(Utils.clamp(e.beta-45,-MAX_DEG,MAX_DEG), Utils.clamp(e.gamma,-MAX_DEG,MAX_DEG));
+  }, true);
+
+  /* ────────────────────────────────────────────────────────
+     RENDERER — Build task DOM node
+     ──────────────────────────────────────────────────────── */
+  function buildNode(task) {
+    const el = document.createElement('article');
+    el.className = `task-item glass-panel${task.done ? ' done' : ''}`;
+    el.dataset.id       = task.id;
+    el.dataset.priority = task.priority;
+    el.setAttribute('role','listitem');
+    el.innerHTML = `
+      <div class="task-inner">
+        <button class="task-check" aria-label="${task.done?'Mark incomplete':'Mark complete'}">
+          <svg viewBox="0 0 14 14"><polyline class="check-path" points="2,7 5.5,10.5 12,3"/></svg>
+        </button>
+        <div class="task-content">
+          <p class="task-text">${Utils.escape(task.text)}</p>
+          <div class="task-meta">
+            <span class="priority-pill">${task.priority}</span>
+            <span class="task-time">${Utils.timeLabel(task.created_at)}</span>
+          </div>
+        </div>
+        <div class="task-actions">
+          <button class="action-btn edit" aria-label="Edit">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="action-btn del" aria-label="Delete">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          </button>
+        </div>
+      </div>`;
+    return el;
+  }
+
+  /* ────────────────────────────────────────────────────────
+     STATS UPDATE — Ring + counters
+     ──────────────────────────────────────────────────────── */
+  function updateStats() {
+    const total = State.tasks.length;
+    const done  = State.tasks.filter(t=>t.done).length;
+    const pct   = total ? Math.round((done/total)*100) : 0;
+
+    DOM.statTotal.textContent = total;
+    DOM.statDone.textContent  = done;
+    DOM.statLeft.textContent  = total - done;
+    updateRing(pct);
+
+    if (pct===100 && total>0 && State._prevPct!==100) setTimeout(celebrate, 400);
+    if (pct<100) State.celebShown = false;
+    State._prevPct = pct;
+  }
+
+  /* ────────────────────────────────────────────────────────
+     FILTER SELECTOR
+     ──────────────────────────────────────────────────────── */
+  function filtered() {
+    const { tasks, filter } = State;
+    switch (filter) {
+      case 'active': return tasks.filter(t=>!t.done);
+      case 'done':   return tasks.filter(t=> t.done);
+      case 'high':   return tasks.filter(t=>t.priority==='high');
+      default:       return tasks;
+    }
+  }
+
+  /* ────────────────────────────────────────────────────────
+     FULL RENDER — Rebuild list from State.tasks
+     ──────────────────────────────────────────────────────── */
+  function render(entrance = false) {
+    const list = filtered();
+
+    // Remove all task nodes (keep empty-state sentinel)
+    [...DOM.taskList.children].forEach(c => { if (c.id!=='empty-state') c.remove(); });
+
+    if (!list.length) {
+      DOM.emptyState.classList.add('visible');
+      DOM.emptyState.removeAttribute('aria-hidden');
+    } else {
+      DOM.emptyState.classList.remove('visible');
+      DOM.emptyState.setAttribute('aria-hidden','true');
+    }
+
+    const newEls = list.map(task => {
+      const el = buildNode(task);
+      DOM.taskList.appendChild(el);
+      return el;
+    });
+
+    if (entrance && newEls.length) Anim.entrance(newEls);
+    updateStats();
+  }
+
+  /* ────────────────────────────────────────────────────────
+     SUPABASE CRUD
+     ──────────────────────────────────────────────────────── */
+  const DB = {
+    async fetchAll() {
+      const { data, error } = await sb.from(TABLE).select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+
+    async insert(task) {
+      const { error } = await sb.from(TABLE).insert({
+        id:         task.id,
+        text:       task.text,
+        priority:   task.priority,
+        done:       false,
+        created_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+    },
+
+    async update(id, changes) {
+      const { error } = await sb.from(TABLE).update(changes).eq('id', id);
+      if (error) throw error;
+    },
+
+    async remove(id) {
+      const { error } = await sb.from(TABLE).delete().eq('id', id);
+      if (error) throw error;
+    }
+  };
+
+  /* ────────────────────────────────────────────────────────
+     REALTIME SUBSCRIPTION
+     Listens for INSERT / UPDATE / DELETE from ANY client
+     and patches State.tasks + DOM without full re-render.
+     ──────────────────────────────────────────────────────── */
+  function subscribeRealtime() {
+    sb.channel('tasks-live')
+      .on('postgres_changes', { event:'*', schema:'public', table:TABLE }, payload => {
+
+        const { eventType, new: nw, old } = payload;
+
+        if (eventType === 'INSERT') {
+          // Skip if we already have it (own insert)
+          if (State.tasks.find(t=>t.id===nw.id)) return;
+          State.tasks.unshift(nw);
+          Cache.save(State.tasks);
+          render();
+          // Flash the new node
+          const el = DOM.taskList.querySelector(`[data-id="${nw.id}"]`);
+          if (el) { Anim.add(el); Anim.remoteFlash(el); }
+          toast('📡 New task synced');
+        }
+
+        if (eventType === 'UPDATE') {
+          const idx = State.tasks.findIndex(t=>t.id===nw.id);
+          if (idx===-1) return;
+          State.tasks[idx] = { ...State.tasks[idx], ...nw };
+          Cache.save(State.tasks);
+          // Patch DOM in-place
+          const el = DOM.taskList.querySelector(`[data-id="${nw.id}"]`);
+          if (el) {
+            const textEl = el.querySelector('.task-text');
+            if (textEl) textEl.textContent = nw.text;
+            el.classList.toggle('done', nw.done);
+            Anim.remoteFlash(el);
+          }
+          updateStats();
+        }
+
+        if (eventType === 'DELETE') {
+          if (!State.tasks.find(t=>t.id===old.id)) return;
+          State.tasks = State.tasks.filter(t=>t.id!==old.id);
+          Cache.save(State.tasks);
+          const el = DOM.taskList.querySelector(`[data-id="${old.id}"]`);
+          if (el) Anim.remove(el, ()=>updateStats());
+          else updateStats();
+        }
+      })
+      .subscribe(status => {
+        if (status === 'SUBSCRIBED') {
+          State.online = true;
+          Banner.set('online', '⚡ Live — changes sync across all devices');
+        }
+      });
+  }
+
+  /* ────────────────────────────────────────────────────────
+     EVENT: ADD TASK
+     ──────────────────────────────────────────────────────── */
+  async function addTask() {
+    const text = DOM.taskInput.value.trim();
+    if (!text) {
+      gsap.timeline()
+        .to(DOM.taskInput, { x:-8, duration:.06 })
+        .to(DOM.taskInput, { x: 8, duration:.06 })
+        .to(DOM.taskInput, { x:-5, duration:.05 })
+        .to(DOM.taskInput, { x: 0, duration:.05 });
+      return;
+    }
+
+    const task = {
+      id:         Utils.id(),
+      text,
+      priority:   State.priority,
+      done:       false,
+      created_at: new Date().toISOString(),
+    };
+
+    // Optimistic UI — add immediately
+    State.tasks.unshift(task);
+    Cache.save(State.tasks);
+    DOM.taskInput.value = '';
+    render();
+    const el = DOM.taskList.querySelector(`[data-id="${task.id}"]`);
+    if (el) Anim.add(el);
+    Anim.pulse(DOM.addBtn);
+    toast('✓ Task added');
+
+    // Persist to Supabase
+    if (State.online) {
+      try {
+        await DB.insert(task);
+      } catch (e) {
+        toast('⚠️ Saved offline — will sync when reconnected', 3500);
+        Banner.set('offline', 'Offline — tasks saved locally');
+      }
+    } else {
+      toast('📦 Saved locally — not yet synced', 3000);
+    }
+  }
+
+  /* ────────────────────────────────────────────────────────
+     EVENT: TOGGLE DONE
+     ──────────────────────────────────────────────────────── */
+  async function toggleDone(id, el) {
+    const task = State.tasks.find(t=>t.id===id);
+    if (!task) return;
+
+    task.done = !task.done;
+    Cache.save(State.tasks);
+
+    // Patch DOM
+    el.classList.toggle('done', task.done);
+    el.querySelector('.task-check').setAttribute('aria-label', task.done?'Mark incomplete':'Mark complete');
+    Anim.toggle(el, task.done);
+    updateStats();
+
+    if (State.online) {
+      try { await DB.update(id, { done: task.done }); }
+      catch { toast('⚠️ Sync failed — will retry', 2500); }
+    }
+  }
+
+  /* ────────────────────────────────────────────────────────
+     EVENT: INLINE EDIT
+     ──────────────────────────────────────────────────────── */
+  async function startEdit(id, el) {
+    const task = State.tasks.find(t=>t.id===id);
+    if (!task) return;
+
+    const textEl = el.querySelector('.task-text');
+    const orig   = task.text;
+    const input  = document.createElement('input');
+    input.type      = 'text';
+    input.value     = orig;
+    input.className = 'task-edit-input';
+    input.maxLength = 200;
+    textEl.replaceWith(input);
+    input.focus(); input.select();
+
+    async function commit() {
+      const newText = input.value.trim() || orig;
+      const p = document.createElement('p');
+      p.className   = 'task-text';
+      p.textContent = newText;
+      if (task.done) p.style.textDecoration = 'line-through';
+      input.replaceWith(p);
+
+      if (newText !== orig) {
+        task.text = newText;
+        Cache.save(State.tasks);
+        toast('✎ Updated');
+        if (State.online) {
+          try { await DB.update(id, { text: newText }); }
+          catch { toast('⚠️ Sync failed', 2500); }
+        }
+      }
+    }
+
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', e => {
+      if (e.key==='Enter')  { e.preventDefault(); input.blur(); }
+      if (e.key==='Escape') { input.value=orig; input.blur(); }
+    });
+  }
+
+  /* ────────────────────────────────────────────────────────
+     EVENT: DELETE TASK
+     ──────────────────────────────────────────────────────── */
+  async function deleteTask(id, el) {
+    Anim.remove(el, async () => {
+      State.tasks = State.tasks.filter(t=>t.id!==id);
+      Cache.save(State.tasks);
+      updateStats();
+      toast('🗑 Deleted');
+      if (State.online) {
+        try { await DB.remove(id); }
+        catch { toast('⚠️ Sync failed — deletion queued', 2500); }
+      }
+    });
+  }
+
+  /* ────────────────────────────────────────────────────────
+     EVENT DELEGATION — task list interactions
+     ──────────────────────────────────────────────────────── */
+  DOM.taskList.addEventListener('click', e => {
+    const item = e.target.closest('.task-item');
+    if (!item) return;
+    const id = item.dataset.id;
+    if (e.target.closest('.task-check'))    toggleDone(id, item);
+    else if (e.target.closest('.action-btn.edit')) startEdit(id, item);
+    else if (e.target.closest('.action-btn.del'))  deleteTask(id, item);
+  });
+
+  /* ────────────────────────────────────────────────────────
+     EVENT: ADD BUTTON + ENTER KEY
+     ──────────────────────────────────────────────────────── */
+  DOM.addBtn.addEventListener('click', addTask);
+  DOM.taskInput.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); addTask(); } });
+
+  /* ────────────────────────────────────────────────────────
+     EVENT: FILTER TABS
+     ──────────────────────────────────────────────────────── */
+  DOM.filterTabs.addEventListener('click', e => {
+    const tab = e.target.closest('.filter-tab');
+    if (!tab) return;
+    document.querySelectorAll('.filter-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
+    tab.classList.add('active'); tab.setAttribute('aria-selected','true');
+    State.filter = tab.dataset.filter;
+    render();
+  });
+
+  /* ────────────────────────────────────────────────────────
+     EVENT: PRIORITY SELECTOR
+     ──────────────────────────────────────────────────────── */
+  DOM.priorityBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      DOM.priorityBtns.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      State.priority = btn.dataset.p;
+    });
+  });
+
+  /* ────────────────────────────────────────────────────────
+     KEYBOARD SHORTCUT — ⌘K / Ctrl+K to focus input
+     ──────────────────────────────────────────────────────── */
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey||e.ctrlKey) && e.key==='k') { e.preventDefault(); DOM.taskInput.focus(); DOM.taskInput.select(); }
+  });
+
+  /* ────────────────────────────────────────────────────────
+     BOOT — Init sequence
+     ──────────────────────────────────────────────────────── */
+  async function boot() {
+    DOM.dateDisplay.textContent = Utils.dateDisplay();
+
+    // 1. Immediately render from local cache (instant perceived load)
+    State.tasks = Cache.load();
+    render(true);
+    Banner.set('syncing', 'Connecting to cloud…');
+
+    // 2. Fetch latest from Supabase
+    try {
+      const remote = await DB.fetchAll();
+      State.tasks  = remote;
+      Cache.save(remote);
+      render(false);
+      Banner.set('online', '⚡ Live — changes sync across all devices');
+
+      // 3. Subscribe to Realtime
+      subscribeRealtime();
+
+    } catch (err) {
+      console.warn('Supabase unavailable:', err.message);
+      Banner.set('offline', 'Offline — showing cached tasks');
+    }
+  }
+
+  boot();
+
+  /* ────────────────────────────────────────────────────────
+     SERVICE WORKER — Offline shell caching
+     ──────────────────────────────────────────────────────── */
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      const CACHE='meridian-v2';
+      self.addEventListener('install',e=>{
+        e.waitUntil(caches.open(CACHE).then(c=>c.addAll([self.location.href])));
+        self.skipWaiting();
+      });
+      self.addEventListener('activate',e=>{
+        e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
+        self.clients.claim();
+      });
+      self.addEventListener('fetch',e=>{
+        e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
+      });
+    `;
+    const swURL = URL.createObjectURL(new Blob([swCode],{type:'application/javascript'}));
+    navigator.serviceWorker.register(swURL).catch(()=>{});
+  }
+  </script>
+</body>
+</html>
