@@ -1,1180 +1,1466 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Meridian — Task OS</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<title>Meridian</title>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Meridian"/>
+<meta name="theme-color" content="#02020A"/>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%2302020A'/%3E%3Ctext x='90' y='115' font-size='90' text-anchor='middle' fill='white'%3EM%3C/text%3E%3C/svg%3E"/>
+<script>
+(function(){
+  const m={name:"Meridian",short_name:"Meridian",start_url:"./",display:"standalone",background_color:"#02020A",theme_color:"#02020A",
+  icons:[{src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%2302020A'/%3E%3Ctext x='256' y='340' font-size='280' text-anchor='middle' fill='white'%3EM%3C/text%3E%3C/svg%3E",sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}]};
+  const l=document.createElement('link');l.rel='manifest';
+  l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/json'}));
+  document.head.appendChild(l);
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════════ */
+:root{
+  --void:    #02020A;
+  --ink:     #080818;
+  --surface: #0D0D20;
+  --lift:    #13132B;
+  --veil:    #1A1A38;
 
-  <!-- ═══════════════════════════════════════════════════════
-       iOS PWA — Native full-screen integration
-       ═══════════════════════════════════════════════════════ -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Meridian" />
-  <meta name="theme-color" content="#050510" />
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23050510'/%3E%3Ccircle cx='90' cy='90' r='50' fill='none' stroke='%236C63FF' stroke-width='8'/%3E%3Cpath d='M65 90 L82 107 L115 74' stroke='%236C63FF' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+  /* Accent system — acid + warm */
+  --acid:    #C8FF00;   /* electric lime — primary CTA */
+  --acid-dim: rgba(200,255,0,0.12);
+  --acid-glow: rgba(200,255,0,0.25);
+  --violet:  #7B61FF;
+  --violet-dim: rgba(123,97,255,0.15);
+  --violet-glow: rgba(123,97,255,0.3);
+  --rose:    #FF4D6D;
+  --rose-dim: rgba(255,77,109,0.15);
+  --amber:   #FFAA00;
+  --amber-dim: rgba(255,170,0,0.15);
+  --teal:    #00E5CC;
+  --teal-dim: rgba(0,229,204,0.15);
 
-  <!-- ═══════════════════════════════════════════════════════
-       DYNAMIC WEB APP MANIFEST via Data URI
-       ═══════════════════════════════════════════════════════ -->
-  <script>
-    (function () {
-      const m = {
-        name: "Meridian — Task OS", short_name: "Meridian",
-        start_url: "./", display: "standalone",
-        background_color: "#050510", theme_color: "#050510",
-        icons: [{ src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23050510'/%3E%3Ccircle cx='256' cy='256' r='140' fill='none' stroke='%236C63FF' stroke-width='24'/%3E%3Cpath d='M186 256L228 298L328 198' stroke='%236C63FF' stroke-width='24' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E", sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" }]
-      };
-      const link = document.createElement('link');
-      link.rel = 'manifest';
-      link.href = URL.createObjectURL(new Blob([JSON.stringify(m)], { type: 'application/json' }));
-      document.head.appendChild(link);
-    })();
-  </script>
+  /* Priority colors */
+  --p-high:   var(--rose);
+  --p-high-d: var(--rose-dim);
+  --p-mid:    var(--amber);
+  --p-mid-d:  var(--amber-dim);
+  --p-low:    var(--teal);
+  --p-low-d:  var(--teal-dim);
 
-  <!-- ═══════════════════════════════════════════════════════
-       EXTERNAL DEPS — Fonts · GSAP · Supabase JS
-       ═══════════════════════════════════════════════════════ -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  /* Text */
+  --t1: rgba(255,255,255,0.95);
+  --t2: rgba(255,255,255,0.50);
+  --t3: rgba(255,255,255,0.25);
 
-  <style>
-    /* ═══════════════════════════════════════════════════════
-       DESIGN TOKEN SYSTEM
-       ═══════════════════════════════════════════════════════ */
-    :root {
-      --void:           #050510;
-      --deep:           #0B0B1E;
-      --surface:        #12122A;
-      --border:         rgba(255,255,255,0.07);
-      --border-bright:  rgba(255,255,255,0.13);
+  /* Motion */
+  --spring: cubic-bezier(0.34,1.56,0.64,1);
+  --smooth: cubic-bezier(0.25,0.46,0.45,0.94);
+  --out:    cubic-bezier(0.16,1,0.3,1);
 
-      --iris:           #6C63FF;
-      --iris-glow:      rgba(108,99,255,0.25);
-      --iris-subtle:    rgba(108,99,255,0.10);
-      --coral:          #FF6B6B;
-      --coral-glow:     rgba(255,107,107,0.20);
-      --amber:          #FFB347;
-      --amber-glow:     rgba(255,179,71,0.20);
-      --sage:           #52D9A3;
-      --sage-glow:      rgba(82,217,163,0.20);
+  --sat: env(safe-area-inset-top,0px);
+  --sab: env(safe-area-inset-bottom,0px);
+}
 
-      --mesh-a: #1a0533;
-      --mesh-b: #0d1a3d;
-      --mesh-c: #120530;
-      --mesh-d: #030318;
+/* ═══════════════════════════════════════════════
+   RESET
+═══════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{height:100%;font-size:16px;-webkit-text-size-adjust:100%;}
+body{
+  min-height:100%;
+  font-family:'Space Grotesk',sans-serif;
+  background:var(--void);
+  color:var(--t1);
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  padding-top:var(--sat);
+  padding-bottom:calc(var(--sab) + 80px);
+  overscroll-behavior:none;
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;transition-duration:0.01ms!important;}}
 
-      --font-display: 'Syne', sans-serif;
-      --font-body:    'Inter', sans-serif;
+/* ═══════════════════════════════════════════════
+   CANVAS LAYERS
+═══════════════════════════════════════════════ */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+#particle-canvas{position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:0;}
 
-      --text-primary:   rgba(255,255,255,0.92);
-      --text-secondary: rgba(255,255,255,0.50);
-      --text-muted:     rgba(255,255,255,0.28);
+/* ═══════════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════════ */
+::-webkit-scrollbar{width:2px;}
+::-webkit-scrollbar-thumb{background:var(--violet);border-radius:99px;}
 
-      --ease-smooth: cubic-bezier(0.25,0.46,0.45,0.94);
-      --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
-      --ease-out:    cubic-bezier(0.16,1,0.3,1);
+/* ═══════════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════════ */
+#app{
+  position:relative;z-index:10;
+  max-width:480px;margin:0 auto;
+  min-height:100vh;display:flex;flex-direction:column;
+  padding:0 18px 24px;
+}
 
-      --radius-sm:  8px;
-      --radius-md:  14px;
-      --radius-lg:  20px;
-      --radius-xl:  28px;
-      --radius-pill: 999px;
+/* ═══════════════════════════════════════════════
+   HERO HEADER — editorial, not a card
+═══════════════════════════════════════════════ */
+#hero{
+  padding:20px 4px 0;
+  margin-bottom:6px;
+  position:relative;
+}
 
-      --glass-bg:     rgba(18,18,42,0.55);
-      --glass-border: 1px solid rgba(255,255,255,0.08);
-      --glass-shadow:
-        0 0 0 1px rgba(255,255,255,0.04),
-        0 4px 6px -1px rgba(0,0,0,0.4),
-        0 20px 40px -8px rgba(0,0,0,0.6),
-        0 0 80px -20px rgba(108,99,255,0.15);
+.hero-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:0;
+}
 
-      --sat: env(safe-area-inset-top, 0px);
-      --sab: env(safe-area-inset-bottom, 0px);
-    }
+.hero-wordmark{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(72px,20vw,96px);
+  line-height:0.85;
+  letter-spacing:-0.02em;
+  /* Split color fill — half white, half violet */
+  background: linear-gradient(170deg,
+    #fff 0%, #fff 48%,
+    var(--violet) 52%, var(--violet) 100%
+  );
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  user-select:none;
+}
 
-    /* ─── Reset ─── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { height: 100%; font-size: 16px; -webkit-text-size-adjust: 100%; }
-    body {
-      min-height: 100%; font-family: var(--font-body);
-      background: var(--void); color: var(--text-primary);
-      overflow-x: hidden; -webkit-font-smoothing: antialiased;
-      padding-top: var(--sat); padding-bottom: calc(var(--sab) + 24px);
-      overscroll-behavior: none;
-    }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-    }
+.hero-meta{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:6px;
+  padding-top:8px;
+}
 
-    /* ─── Mesh Background ─── */
-    #mesh-bg {
-      position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background:
-        radial-gradient(ellipse 80% 60% at 20% 10%, var(--mesh-a) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 70% at 80% 20%, var(--mesh-b) 0%, transparent 55%),
-        radial-gradient(ellipse 70% 50% at 10% 80%, var(--mesh-c) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 80% at 90% 90%, var(--mesh-d) 0%, transparent 55%),
-        var(--void);
-      animation: meshBreathe 18s ease-in-out infinite alternate;
-    }
-    @keyframes meshBreathe {
-      0%   { filter: hue-rotate(0deg) brightness(1); }
-      50%  { filter: hue-rotate(12deg) brightness(1.04); }
-      100% { filter: hue-rotate(-6deg) brightness(0.97); }
-    }
+.hero-date{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--t3);
+}
 
-    /* ─── Noise overlay ─── */
-    #noise {
-      position: fixed; inset: 0; z-index: 1; opacity: 0.025; pointer-events: none;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-size: 200px 200px;
-    }
+/* Live sync pill */
+.sync-pill{
+  display:flex;align-items:center;gap:5px;
+  padding:4px 10px;
+  border-radius:99px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:0.08em;
+  text-transform:uppercase;
+  border:1px solid transparent;
+  transition:all 0.3s var(--smooth);
+}
+.sync-pill.online  {background:rgba(0,229,204,0.08);border-color:rgba(0,229,204,0.2);color:var(--teal);}
+.sync-pill.offline {background:rgba(255,170,0,0.08); border-color:rgba(255,170,0,0.2); color:var(--amber);}
+.sync-pill.syncing {background:rgba(123,97,255,0.08);border-color:rgba(123,97,255,0.2);color:var(--violet);}
+.sync-pill.error   {background:rgba(255,77,109,0.08); border-color:rgba(255,77,109,0.2); color:var(--rose);}
+.sync-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+.sync-dot.blink{animation:blink 1.4s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.2;}}
 
-    /* ─── Particle canvas ─── */
-    #particle-canvas { position: fixed; inset: 0; z-index: 9999; pointer-events: none; opacity: 0; }
+/* Progress bar — horizontal ticker under wordmark */
+.hero-progress-track{
+  width:100%;height:3px;
+  background:rgba(255,255,255,0.06);
+  border-radius:99px;
+  margin-top:12px;
+  overflow:hidden;
+  position:relative;
+}
+.hero-progress-fill{
+  height:100%;width:0%;
+  background:linear-gradient(90deg,var(--violet),var(--acid));
+  border-radius:99px;
+  transition:width 0.7s var(--smooth);
+  position:relative;
+}
+.hero-progress-fill::after{
+  content:'';
+  position:absolute;right:0;top:50%;transform:translateY(-50%);
+  width:6px;height:6px;border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 8px 2px var(--acid);
+}
 
-    /* ─── App container ─── */
-    #app {
-      position: relative; z-index: 10;
-      max-width: 520px; margin: 0 auto;
-      min-height: 100vh; display: flex; flex-direction: column;
-      padding: 28px 20px;
-    }
+/* ═══════════════════════════════════════════════
+   TICKER STRIP — replaces boring stat cards
+═══════════════════════════════════════════════ */
+#ticker{
+  display:flex;
+  gap:0;
+  margin:16px 0 20px;
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px;
+  overflow:hidden;
+  background:var(--surface);
+}
+.ticker-item{
+  flex:1;
+  padding:14px 12px;
+  display:flex;flex-direction:column;gap:3px;
+  position:relative;
+}
+.ticker-item+.ticker-item{
+  border-left:1px solid rgba(255,255,255,0.05);
+}
+.ticker-num{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:36px;line-height:1;
+  color:var(--t1);
+  transition:color 0.3s;
+}
+.ticker-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;letter-spacing:0.15em;
+  text-transform:uppercase;
+  color:var(--t3);
+}
+.ticker-item.accent-done .ticker-num{color:var(--acid);}
+.ticker-accent-bar{
+  position:absolute;bottom:0;left:0;right:0;
+  height:2px;
+  background:transparent;
+  transition:background 0.3s;
+}
+.ticker-item.accent-done .ticker-accent-bar{background:var(--acid);}
+.ticker-item.accent-left .ticker-accent-bar{background:var(--violet);}
 
-    /* ─── Glass panel ─── */
-    .glass-panel {
-      background: var(--glass-bg);
-      backdrop-filter: blur(24px) saturate(160%);
-      -webkit-backdrop-filter: blur(24px) saturate(160%);
-      border: var(--glass-border);
-      box-shadow: var(--glass-shadow);
-      border-radius: var(--radius-xl);
-    }
+/* ═══════════════════════════════════════════════
+   ADD TASK — brutalist input row
+═══════════════════════════════════════════════ */
+#add-zone{
+  margin-bottom:16px;
+  background:var(--surface);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:18px;
+  overflow:hidden;
+  transition:border-color 0.2s;
+}
+#add-zone:focus-within{border-color:rgba(123,97,255,0.4);}
 
-    /* ═══════════════════════════════════════════════════════
-       CONNECTION STATUS BANNER
-       ═══════════════════════════════════════════════════════ */
-    #sync-banner {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 16px; border-radius: var(--radius-md);
-      font-size: 12px; font-weight: 500;
-      margin-bottom: 12px;
-      transition: all 0.3s var(--ease-smooth);
-      border: 1px solid transparent;
-    }
-    #sync-banner.online  { background: rgba(82,217,163,0.1); border-color: rgba(82,217,163,0.25); color: var(--sage); }
-    #sync-banner.offline { background: rgba(255,179,71,0.1);  border-color: rgba(255,179,71,0.25);  color: var(--amber); }
-    #sync-banner.syncing { background: rgba(108,99,255,0.1); border-color: rgba(108,99,255,0.25); color: var(--iris); }
-    #sync-banner.error   { background: rgba(255,107,107,0.1); border-color: rgba(255,107,107,0.25); color: var(--coral); }
+.input-row{
+  display:flex;align-items:center;
+  padding:6px 6px 6px 18px;
+  gap:10px;
+}
+#task-input{
+  flex:1;
+  background:transparent;
+  border:none;outline:none;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:15px;font-weight:500;
+  color:var(--t1);
+  padding:10px 0;
+}
+#task-input::placeholder{color:var(--t3);}
 
-    .sync-dot {
-      width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
-      background: currentColor;
-    }
-    .sync-dot.pulse { animation: pulseDot 1.6s ease-in-out infinite; }
-    @keyframes pulseDot {
-      0%,100% { opacity: 1; transform: scale(1); }
-      50%      { opacity: 0.4; transform: scale(0.6); }
-    }
+#add-btn{
+  width:44px;height:44px;
+  border-radius:12px;
+  border:none;cursor:pointer;
+  background:var(--acid);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  transition:transform 0.18s var(--spring),box-shadow 0.2s;
+  box-shadow:0 0 20px var(--acid-glow);
+}
+#add-btn:hover{transform:scale(1.08);box-shadow:0 0 32px var(--acid-glow);}
+#add-btn:active{transform:scale(0.92);}
+#add-btn svg{width:18px;height:18px;stroke:#000;stroke-width:3;fill:none;stroke-linecap:round;}
 
-    /* ═══════════════════════════════════════════════════════
-       HEADER
-       ═══════════════════════════════════════════════════════ */
-    #header {
-      padding: 24px 28px;
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 12px; gap: 16px;
-      background: linear-gradient(135deg,
-        rgba(108,99,255,0.12) 0%,
-        rgba(18,18,42,0.55) 60%,
-        rgba(255,107,107,0.05) 100%
-      );
-    }
-    .header-left { flex: 1; min-width: 0; }
-    .app-eyebrow {
-      font-family: var(--font-display); font-size: 10px; font-weight: 700;
-      letter-spacing: 0.2em; text-transform: uppercase; color: var(--iris);
-      margin-bottom: 4px; opacity: 0.8;
-    }
-    .app-title {
-      font-family: var(--font-display); font-size: clamp(26px,5vw,34px);
-      font-weight: 800; line-height: 1.05; letter-spacing: -0.03em;
-      background: linear-gradient(135deg, #fff 30%, rgba(108,99,255,0.9) 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .header-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
+/* Priority row */
+.priority-row{
+  display:flex;
+  border-top:1px solid rgba(255,255,255,0.05);
+}
+.p-btn{
+  flex:1;padding:10px 0;
+  border:none;background:transparent;cursor:pointer;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--t3);
+  transition:all 0.18s var(--smooth);
+  position:relative;
+}
+.p-btn+.p-btn{border-left:1px solid rgba(255,255,255,0.05);}
+.p-btn::after{
+  content:'';
+  position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:transparent;transition:background 0.2s;
+}
+.p-btn[data-p="high"]{color:rgba(255,77,109,0.5);}
+.p-btn[data-p="mid"] {color:rgba(255,170,0,0.5);}
+.p-btn[data-p="low"] {color:rgba(0,229,204,0.5);}
+.p-btn[data-p="high"].active{color:var(--rose);background:rgba(255,77,109,0.06);}
+.p-btn[data-p="high"].active::after{background:var(--rose);}
+.p-btn[data-p="mid"].active {color:var(--amber);background:rgba(255,170,0,0.06);}
+.p-btn[data-p="mid"].active::after{background:var(--amber);}
+.p-btn[data-p="low"].active {color:var(--teal);background:rgba(0,229,204,0.06);}
+.p-btn[data-p="low"].active::after{background:var(--teal);}
 
-    /* ─── Circular Progress Ring ─── */
-    .progress-ring-wrap {
-      flex-shrink: 0; position: relative;
-      width: 72px; height: 72px;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .progress-ring-wrap svg { position: absolute; inset: 0; transform: rotate(-90deg); }
-    .ring-track  { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 5; }
-    .ring-fill   { fill: none; stroke: url(#ringGrad); stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.7s var(--ease-smooth); }
-    .ring-inner  { text-align: center; z-index: 1; position: relative; }
-    .ring-pct    { display: block; font-family: var(--font-display); font-size: 15px; font-weight: 700; line-height: 1; }
-    .ring-label  { display: block; font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; }
+/* ═══════════════════════════════════════════════
+   FILTER ROW — minimal pills, not a panel
+═══════════════════════════════════════════════ */
+#filters{
+  display:flex;gap:6px;
+  margin-bottom:18px;
+  padding:0 2px;
+}
+.f-pill{
+  padding:6px 14px;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:99px;
+  background:transparent;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:11px;font-weight:500;
+  color:var(--t3);
+  cursor:pointer;
+  transition:all 0.18s var(--smooth);
+  white-space:nowrap;
+}
+.f-pill.active{
+  background:var(--violet-dim);
+  border-color:rgba(123,97,255,0.4);
+  color:#fff;
+}
+.f-pill:hover:not(.active){border-color:rgba(255,255,255,0.15);color:var(--t2);}
 
-    /* ═══════════════════════════════════════════════════════
-       STATS BAR
-       ═══════════════════════════════════════════════════════ */
-    #stats-bar { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 12px; }
-    .stat-card  { padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
-    .stat-value { font-family: var(--font-display); font-size: 24px; font-weight: 700; line-height: 1; }
-    .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+/* ═══════════════════════════════════════════════
+   TASK LIST
+═══════════════════════════════════════════════ */
+#task-list{display:flex;flex-direction:column;gap:8px;flex:1;}
 
-    /* ═══════════════════════════════════════════════════════
-       ADD TASK PANEL
-       ═══════════════════════════════════════════════════════ */
-    #add-panel { padding: 18px 20px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 14px; }
-    .input-row  { display: flex; gap: 10px; align-items: center; }
+/* Empty state */
+#empty{
+  display:none;
+  padding:64px 0;
+  text-align:center;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+#empty.show{display:flex;}
+.empty-glyph{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:80px;line-height:1;
+  color:rgba(255,255,255,0.04);
+  letter-spacing:-0.04em;
+  user-select:none;
+}
+.empty-label{font-size:13px;color:var(--t3);letter-spacing:0.04em;}
 
-    #task-input {
-      flex: 1; background: rgba(255,255,255,0.04);
-      border: 1px solid var(--border); border-radius: var(--radius-md);
-      padding: 13px 16px; font-family: var(--font-body); font-size: 14px;
-      color: var(--text-primary); outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-      -webkit-appearance: none;
-    }
-    #task-input::placeholder { color: var(--text-muted); }
-    #task-input:focus {
-      border-color: var(--iris); background: rgba(108,99,255,0.05);
-      box-shadow: 0 0 0 3px var(--iris-glow);
-    }
+/* ═══════════════════════════════════════════════
+   TASK CARD — editorial layout
+═══════════════════════════════════════════════ */
+.task-card{
+  position:relative;
+  background:var(--surface);
+  border:1px solid rgba(255,255,255,0.055);
+  border-radius:16px;
+  overflow:hidden;
+  cursor:default;
+  transition:border-color 0.2s,transform 0.15s var(--smooth);
+}
+.task-card:hover{border-color:rgba(255,255,255,0.1);transform:translateY(-1px);}
 
-    .priority-selector { display: flex; gap: 6px; }
-    .priority-btn {
-      flex: 1; padding: 9px 0;
-      border: 1px solid var(--border); border-radius: var(--radius-sm);
-      background: transparent; font-family: var(--font-body);
-      font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
-      text-transform: uppercase; cursor: pointer;
-      transition: all 0.18s var(--ease-smooth); color: var(--text-muted);
-    }
-    .priority-btn[data-p="high"]   { color: var(--coral); }
-    .priority-btn[data-p="medium"] { color: var(--amber); }
-    .priority-btn[data-p="low"]    { color: var(--sage);  }
-    .priority-btn.active[data-p="high"]   { background: var(--coral-glow); border-color: var(--coral); box-shadow: 0 0 16px -4px var(--coral); }
-    .priority-btn.active[data-p="medium"] { background: var(--amber-glow); border-color: var(--amber); box-shadow: 0 0 16px -4px var(--amber); }
-    .priority-btn.active[data-p="low"]    { background: var(--sage-glow);  border-color: var(--sage);  box-shadow: 0 0 16px -4px var(--sage);  }
+/* Left priority stripe */
+.task-card::before{
+  content:'';
+  position:absolute;left:0;top:0;bottom:0;
+  width:3px;
+  transition:background 0.3s;
+}
+.task-card[data-p="high"]::before{background:var(--rose);box-shadow:4px 0 12px rgba(255,77,109,0.4);}
+.task-card[data-p="mid"]::before {background:var(--amber);box-shadow:4px 0 12px rgba(255,170,0,0.4);}
+.task-card[data-p="low"]::before {background:var(--teal);box-shadow:4px 0 12px rgba(0,229,204,0.4);}
 
-    #add-btn {
-      flex-shrink: 0; width: 46px; height: 46px;
-      border-radius: var(--radius-md); border: none;
-      background: linear-gradient(135deg, var(--iris) 0%, #9B6BFF 100%);
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: transform 0.18s var(--ease-spring), box-shadow 0.2s;
-      box-shadow: 0 4px 20px var(--iris-glow), 0 0 0 1px rgba(255,255,255,0.1) inset;
-    }
-    #add-btn:hover  { transform: scale(1.07); box-shadow: 0 6px 28px var(--iris-glow), 0 0 0 1px rgba(255,255,255,0.15) inset; }
-    #add-btn:active { transform: scale(0.93); }
-    #add-btn svg    { width: 20px; height: 20px; stroke: #fff; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.card-inner{
+  padding:14px 14px 14px 20px;
+  display:flex;align-items:flex-start;gap:12px;
+}
 
-    /* ═══════════════════════════════════════════════════════
-       FILTER TABS
-       ═══════════════════════════════════════════════════════ */
-    #filter-tabs { display: flex; gap: 6px; padding: 6px; margin-bottom: 14px; border-radius: var(--radius-lg); }
-    .filter-tab {
-      flex: 1; padding: 9px 8px; border: none; border-radius: var(--radius-md);
-      background: transparent; font-family: var(--font-body); font-size: 12px;
-      font-weight: 500; color: var(--text-muted); cursor: pointer;
-      transition: all 0.2s var(--ease-smooth); letter-spacing: 0.02em;
-    }
-    .filter-tab.active { background: rgba(108,99,255,0.18); color: #fff; box-shadow: 0 0 0 1px rgba(108,99,255,0.3); }
+/* Checkbox */
+.c-box{
+  flex-shrink:0;
+  width:20px;height:20px;
+  border-radius:6px;
+  border:1.5px solid rgba(255,255,255,0.15);
+  background:transparent;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  margin-top:2px;
+  transition:all 0.2s var(--smooth);
+  position:relative;
+}
+.task-card[data-p="high"] .c-box{border-color:rgba(255,77,109,0.4);}
+.task-card[data-p="mid"]  .c-box{border-color:rgba(255,170,0,0.4);}
+.task-card[data-p="low"]  .c-box{border-color:rgba(0,229,204,0.4);}
+.c-box svg{width:10px;height:10px;stroke:#000;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;opacity:0;transform:scale(0.4);transition:all 0.2s var(--spring);}
+.c-box .ck{stroke-dasharray:14;stroke-dashoffset:14;transition:stroke-dashoffset 0.3s var(--smooth);}
 
-    /* ═══════════════════════════════════════════════════════
-       TASK LIST
-       ═══════════════════════════════════════════════════════ */
-    #task-list { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.task-card.done .c-box{background:var(--acid);border-color:transparent;box-shadow:0 0 14px rgba(200,255,0,0.4);}
+.task-card.done .c-box svg{opacity:1;transform:scale(1);}
+.task-card.done .c-box .ck{stroke-dashoffset:0;}
 
-    /* ─── Empty state ─── */
-    #empty-state { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; gap: 14px; }
-    #empty-state.visible { display: flex; }
-    .empty-icon { width: 64px; height: 64px; border-radius: var(--radius-lg); background: var(--iris-subtle); display: flex; align-items: center; justify-content: center; margin-bottom: 4px; }
-    .empty-icon svg { width: 28px; height: 28px; stroke: var(--iris); stroke-width: 1.5; fill: none; }
-    .empty-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
-    .empty-sub   { font-size: 13px; color: var(--text-muted); line-height: 1.5; max-width: 240px; }
+/* Text area */
+.c-body{flex:1;min-width:0;}
+.c-text{
+  font-size:14px;font-weight:500;line-height:1.4;
+  color:var(--t1);
+  word-break:break-word;
+  transition:color 0.25s,opacity 0.25s;
+}
+.task-card.done .c-text{
+  text-decoration:line-through;
+  color:var(--t3);
+}
+.c-foot{
+  display:flex;align-items:center;gap:8px;
+  margin-top:5px;
+}
+.c-priority{
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;letter-spacing:0.14em;text-transform:uppercase;
+  padding:2px 6px;border-radius:4px;
+}
+.task-card[data-p="high"] .c-priority{color:var(--rose);background:var(--rose-dim);}
+.task-card[data-p="mid"]  .c-priority{color:var(--amber);background:var(--amber-dim);}
+.task-card[data-p="low"]  .c-priority{color:var(--teal);background:var(--teal-dim);}
+.c-time{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--t3);}
 
-    /* ═══════════════════════════════════════════════════════
-       TASK ITEM
-       ═══════════════════════════════════════════════════════ */
-    .task-item { padding: 0; overflow: hidden; position: relative; clip-path: inset(0 0 0 0 round 20px); }
-    .task-inner { padding: 16px 18px; display: flex; gap: 14px; align-items: flex-start; }
+/* Action buttons — appear on hover */
+.c-actions{
+  display:flex;flex-direction:column;gap:4px;
+  opacity:0;transform:translateX(4px);
+  transition:all 0.18s var(--smooth);
+  flex-shrink:0;
+}
+.task-card:hover .c-actions,.task-card:focus-within .c-actions{opacity:1;transform:translateX(0);}
+.act{
+  width:28px;height:28px;border-radius:8px;
+  border:1px solid rgba(255,255,255,0.07);
+  background:rgba(255,255,255,0.03);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.15s var(--smooth);
+  color:var(--t3);
+}
+.act svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.act.e:hover{background:var(--violet-dim);border-color:rgba(123,97,255,0.4);color:var(--violet);}
+.act.d:hover{background:var(--rose-dim);border-color:rgba(255,77,109,0.3);color:var(--rose);}
 
-    /* Priority bar */
-    .task-item::before {
-      content: ''; position: absolute; left: 0; top: 12px; bottom: 12px;
-      width: 3px; border-radius: 0 3px 3px 0; transition: background 0.3s;
-    }
-    .task-item[data-priority="high"]::before   { background: var(--coral); box-shadow: 0 0 12px var(--coral); }
-    .task-item[data-priority="medium"]::before { background: var(--amber); box-shadow: 0 0 12px var(--amber); }
-    .task-item[data-priority="low"]::before    { background: var(--sage);  box-shadow: 0 0 12px var(--sage);  }
+/* Inline edit input */
+.inline-edit{
+  width:100%;background:transparent;border:none;
+  border-bottom:1px solid var(--violet);
+  outline:none;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:14px;font-weight:500;
+  color:var(--t1);
+  padding:2px 0 4px;
+}
 
-    /* Checkbox */
-    .task-check {
-      flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%;
-      border: 2px solid var(--border-bright); cursor: pointer;
-      position: relative; transition: all 0.25s var(--ease-smooth);
-      display: flex; align-items: center; justify-content: center;
-      margin-top: 1px; background: transparent;
-    }
-    .task-item[data-priority="high"]   .task-check { border-color: var(--coral); }
-    .task-item[data-priority="medium"] .task-check { border-color: var(--amber); }
-    .task-item[data-priority="low"]    .task-check { border-color: var(--sage);  }
+/* Remote flash */
+@keyframes rfx{0%{background:rgba(123,97,255,0.18);}100%{background:var(--surface);}}
+.task-card.rfx{animation:rfx 0.9s var(--smooth) forwards;}
 
-    .task-check svg { position: absolute; width: 12px; height: 12px; stroke: white; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: scale(0.5); transition: all 0.25s var(--ease-spring); }
-    .task-check svg .check-path { stroke-dasharray: 20; stroke-dashoffset: 20; transition: stroke-dashoffset 0.35s var(--ease-smooth); }
+/* ═══════════════════════════════════════════════
+   VOICE FAB — the Meridian wake button
+═══════════════════════════════════════════════ */
+#voice-fab{
+  position:fixed;
+  bottom:calc(var(--sab) + 28px);
+  left:50%;transform:translateX(-50%);
+  z-index:500;
 
-    .task-item.done .task-check { background: linear-gradient(135deg,#52D9A3,#6C63FF); border-color: transparent; box-shadow: 0 0 18px rgba(82,217,163,0.4); }
-    .task-item.done .task-check svg { opacity: 1; transform: scale(1); }
-    .task-item.done .task-check svg .check-path { stroke-dashoffset: 0; }
+  width:64px;height:64px;
+  border-radius:50%;
+  border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--violet) 0%,#5B3FFF 100%);
+  display:flex;align-items:center;justify-content:center;
 
-    /* Content */
-    .task-content { flex: 1; min-width: 0; }
-    .task-text { font-size: 14px; font-weight: 500; line-height: 1.45; color: var(--text-primary); transition: color 0.3s; word-break: break-word; }
-    .task-item.done .task-text { text-decoration: line-through; color: var(--text-muted); }
-    .task-meta { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+  box-shadow:
+    0 0 0 0 rgba(123,97,255,0),
+    0 8px 32px rgba(123,97,255,0.4);
+  transition:transform 0.2s var(--spring),box-shadow 0.2s;
+}
+#voice-fab:hover{transform:translateX(-50%) scale(1.08);}
+#voice-fab:active{transform:translateX(-50%) scale(0.93);}
+#voice-fab svg{width:24px;height:24px;stroke:#fff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
 
-    .priority-pill { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 2px 7px; border-radius: var(--radius-pill); }
-    .task-item[data-priority="high"]   .priority-pill { color: var(--coral); background: var(--coral-glow); }
-    .task-item[data-priority="medium"] .priority-pill { color: var(--amber); background: var(--amber-glow); }
-    .task-item[data-priority="low"]    .priority-pill { color: var(--sage);  background: var(--sage-glow);  }
+/* Listening pulse rings */
+#voice-fab.listening{
+  box-shadow:
+    0 0 0 12px rgba(123,97,255,0.15),
+    0 0 0 24px rgba(123,97,255,0.07),
+    0 8px 32px rgba(123,97,255,0.5);
+  animation:listenPulse 1.6s ease-in-out infinite;
+}
+@keyframes listenPulse{
+  0%,100%{box-shadow:0 0 0 8px rgba(123,97,255,0.2),0 0 0 16px rgba(123,97,255,0.08),0 8px 32px rgba(123,97,255,0.5);}
+  50%    {box-shadow:0 0 0 16px rgba(123,97,255,0.12),0 0 0 28px rgba(123,97,255,0.04),0 8px 32px rgba(123,97,255,0.5);}
+}
+#voice-fab.listening svg{stroke:var(--acid);}
 
-    .task-time { font-size: 10px; color: var(--text-muted); }
+/* ═══════════════════════════════════════════════
+   VOICE MODAL — wake word UI
+═══════════════════════════════════════════════ */
+#voice-modal{
+  position:fixed;inset:0;z-index:800;
+  display:flex;align-items:flex-end;
+  background:rgba(2,2,10,0.7);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  opacity:0;pointer-events:none;
+  transition:opacity 0.3s var(--smooth);
+}
+#voice-modal.open{opacity:1;pointer-events:all;}
 
-    /* Realtime flash — brief glow when a remote change arrives */
-    @keyframes remoteFlash {
-      0%   { box-shadow: var(--glass-shadow), 0 0 0 2px rgba(108,99,255,0.6); }
-      100% { box-shadow: var(--glass-shadow); }
-    }
-    .task-item.remote-flash { animation: remoteFlash 0.8s var(--ease-smooth) forwards; }
+.voice-sheet{
+  width:100%;max-width:480px;margin:0 auto;
+  background:var(--surface);
+  border:1px solid rgba(255,255,255,0.08);
+  border-bottom:none;
+  border-radius:24px 24px 0 0;
+  padding:28px 24px calc(var(--sab) + 40px);
+  transform:translateY(100%);
+  transition:transform 0.4s var(--spring);
+}
+#voice-modal.open .voice-sheet{transform:translateY(0);}
 
-    /* Inline edit */
-    .task-edit-input {
-      width: 100%; background: rgba(255,255,255,0.05);
-      border: 1px solid var(--iris); border-radius: var(--radius-sm);
-      padding: 6px 10px; font-family: var(--font-body); font-size: 14px;
-      font-weight: 500; color: var(--text-primary); outline: none;
-      box-shadow: 0 0 0 3px var(--iris-glow);
-    }
+.vs-handle{
+  width:36px;height:4px;border-radius:99px;
+  background:rgba(255,255,255,0.12);
+  margin:0 auto 24px;
+}
+.vs-status{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--violet);
+  margin-bottom:10px;
+}
+.vs-transcript{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:22px;font-weight:600;line-height:1.3;
+  color:var(--t1);
+  min-height:60px;
+  margin-bottom:20px;
+  position:relative;
+}
+.vs-transcript .cursor{
+  display:inline-block;
+  width:2px;height:1.1em;
+  background:var(--acid);
+  margin-left:3px;
+  vertical-align:text-bottom;
+  animation:cursorBlink 1s step-end infinite;
+}
+@keyframes cursorBlink{0%,100%{opacity:1;}50%{opacity:0;}}
 
-    /* Action buttons */
-    .task-actions { display: flex; gap: 4px; flex-shrink: 0; opacity: 0; transform: translateX(6px); transition: all 0.2s var(--ease-smooth); }
-    .task-item:hover .task-actions,
-    .task-item:focus-within .task-actions { opacity: 1; transform: translateX(0); }
-    .action-btn {
-      width: 32px; height: 32px; border-radius: var(--radius-sm);
-      border: 1px solid var(--border); background: rgba(255,255,255,0.04);
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: all 0.15s var(--ease-smooth); color: var(--text-muted);
-    }
-    .action-btn svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-    .action-btn.edit:hover { background: var(--iris-subtle); border-color: var(--iris); color: var(--iris); }
-    .action-btn.del:hover  { background: var(--coral-glow);  border-color: var(--coral); color: var(--coral); }
+/* Priority picker inside voice modal */
+.vs-priority-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:0.15em;text-transform:uppercase;
+  color:var(--t3);margin-bottom:10px;
+}
+.vs-priority-row{display:flex;gap:8px;margin-bottom:20px;}
+.vs-p-btn{
+  flex:1;padding:12px 0;
+  border-radius:10px;
+  border:1.5px solid rgba(255,255,255,0.08);
+  background:transparent;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9px;letter-spacing:0.12em;text-transform:uppercase;
+  cursor:pointer;transition:all 0.18s var(--smooth);
+}
+.vs-p-btn[data-p="high"]{color:var(--rose);}
+.vs-p-btn[data-p="mid"] {color:var(--amber);}
+.vs-p-btn[data-p="low"] {color:var(--teal);}
+.vs-p-btn[data-p="high"].sel{background:var(--rose-dim);border-color:var(--rose);}
+.vs-p-btn[data-p="mid"].sel {background:var(--amber-dim);border-color:var(--amber);}
+.vs-p-btn[data-p="low"].sel {background:var(--teal-dim);border-color:var(--teal);}
 
-    /* ═══════════════════════════════════════════════════════
-       TOAST
-       ═══════════════════════════════════════════════════════ */
-    #toast {
-      position: fixed; bottom: calc(var(--sab) + 32px); left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: rgba(18,18,42,0.95); border: 1px solid var(--border-bright);
-      backdrop-filter: blur(20px) saturate(150%); -webkit-backdrop-filter: blur(20px) saturate(150%);
-      padding: 12px 20px; border-radius: var(--radius-pill);
-      font-size: 13px; font-weight: 500; color: var(--text-primary);
-      pointer-events: none; opacity: 0; z-index: 1000; white-space: nowrap;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      transition: opacity 0.25s, transform 0.3s var(--ease-spring);
-    }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.vs-actions{display:flex;gap:8px;}
+.vs-cancel{
+  flex:1;padding:14px;border-radius:12px;
+  border:1px solid rgba(255,255,255,0.08);
+  background:transparent;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:14px;font-weight:500;
+  color:var(--t2);cursor:pointer;
+  transition:all 0.18s var(--smooth);
+}
+.vs-cancel:hover{border-color:rgba(255,255,255,0.15);color:var(--t1);}
+.vs-confirm{
+  flex:2;padding:14px;border-radius:12px;
+  border:none;
+  background:var(--acid);
+  font-family:'Space Grotesk',sans-serif;
+  font-size:14px;font-weight:600;
+  color:#000;cursor:pointer;
+  box-shadow:0 4px 20px rgba(200,255,0,0.3);
+  transition:all 0.18s var(--smooth);
+}
+.vs-confirm:hover{box-shadow:0 4px 28px rgba(200,255,0,0.5);}
+.vs-confirm:disabled{opacity:0.3;cursor:not-allowed;}
 
-    /* ═══════════════════════════════════════════════════════
-       CELEBRATION
-       ═══════════════════════════════════════════════════════ */
-    #celebration {
-      position: fixed; inset: 0; z-index: 900;
-      display: flex; align-items: center; justify-content: center;
-      pointer-events: none; opacity: 0;
-    }
-    .celebrate-card { text-align: center; padding: 40px 48px; max-width: 320px; }
-    .celebrate-emoji { font-size: 56px; margin-bottom: 16px; display: block; line-height: 1; }
-    .celebrate-title {
-      font-family: var(--font-display); font-size: 26px; font-weight: 800;
-      background: linear-gradient(135deg,#fff,var(--iris));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      margin-bottom: 8px;
-    }
-    .celebrate-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+/* Voice hint at bottom when modal closed */
+#voice-hint{
+  position:fixed;bottom:calc(var(--sab) + 104px);
+  left:50%;transform:translateX(-50%);
+  font-family:'JetBrains Mono',monospace;
+  font-size:8px;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--t3);
+  white-space:nowrap;
+  z-index:400;
+  opacity:0;
+  transition:opacity 0.3s;
+}
+#voice-hint.show{opacity:1;}
 
-    /* ─── Misc ─── */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-thumb { background: rgba(108,99,255,0.3); border-radius: 999px; }
-    :focus-visible { outline: 2px solid var(--iris); outline-offset: 2px; }
-  </style>
+/* ═══════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════ */
+#toast{
+  position:fixed;
+  bottom:calc(var(--sab) + 110px);
+  left:50%;transform:translateX(-50%) translateY(8px);
+  background:var(--lift);
+  border:1px solid rgba(255,255,255,0.1);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  padding:10px 18px;border-radius:99px;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:12px;font-weight:500;
+  color:var(--t1);
+  pointer-events:none;opacity:0;z-index:1000;
+  white-space:nowrap;
+  transition:opacity 0.22s,transform 0.3s var(--spring);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ═══════════════════════════════════════════════
+   CELEBRATION
+═══════════════════════════════════════════════ */
+#celebrate{
+  position:fixed;inset:0;z-index:900;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;opacity:0;
+}
+.cel-card{
+  text-align:center;
+  padding:40px 48px;
+  background:rgba(13,13,32,0.95);
+  border:1px solid rgba(200,255,0,0.2);
+  border-radius:24px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 0 80px rgba(200,255,0,0.1),0 0 0 1px rgba(200,255,0,0.05);
+}
+.cel-word{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:64px;line-height:1;
+  letter-spacing:-0.02em;
+  background:linear-gradient(135deg,var(--acid),var(--violet));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:8px;
+}
+.cel-sub{font-size:13px;color:var(--t2);line-height:1.5;}
+</style>
 </head>
-
 <body>
-  <div id="mesh-bg" aria-hidden="true"></div>
-  <div id="noise"   aria-hidden="true"></div>
-  <canvas id="particle-canvas" aria-hidden="true"></canvas>
 
-  <!-- Celebration overlay -->
-  <div id="celebration" aria-live="polite">
-    <div class="celebrate-card glass-panel">
-      <span class="celebrate-emoji">🎯</span>
-      <h2 class="celebrate-title">All Done.</h2>
-      <p class="celebrate-sub">Every task cleared. Pure execution.</p>
+<!-- ── Generative background canvas ── -->
+<canvas id="bg-canvas"></canvas>
+<canvas id="particle-canvas"></canvas>
+
+<!-- ── Toast ── -->
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- ── Celebration ── -->
+<div id="celebrate">
+  <div class="cel-card">
+    <div class="cel-word">CLEARED</div>
+    <p class="cel-sub">Every task executed.<br>This is what discipline looks like.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     VOICE MODAL
+══════════════════════════════════════════════ -->
+<div id="voice-modal" role="dialog" aria-modal="true" aria-label="Voice task entry">
+  <div class="voice-sheet">
+    <div class="vs-handle"></div>
+    <div class="vs-status" id="vs-status">Listening…</div>
+    <div class="vs-transcript" id="vs-transcript">
+      <span id="vs-text"></span><span class="cursor" id="vs-cursor"></span>
+    </div>
+
+    <div class="vs-priority-label">Set priority</div>
+    <div class="vs-priority-row">
+      <button class="vs-p-btn sel" data-p="high">High</button>
+      <button class="vs-p-btn" data-p="mid">Mid</button>
+      <button class="vs-p-btn" data-p="low">Low</button>
+    </div>
+
+    <div class="vs-actions">
+      <button class="vs-cancel" id="vs-cancel">Cancel</button>
+      <button class="vs-confirm" id="vs-confirm" disabled>Add Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     APP
+══════════════════════════════════════════════ -->
+<main id="app">
+
+  <!-- Hero -->
+  <div id="hero">
+    <div class="hero-top">
+      <h1 class="hero-wordmark">MERIDIAN</h1>
+      <div class="hero-meta">
+        <span class="hero-date" id="hero-date"></span>
+        <div class="sync-pill syncing" id="sync-pill">
+          <span class="sync-dot blink" id="sync-dot"></span>
+          <span id="sync-text">Connecting</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-progress-track">
+      <div class="hero-progress-fill" id="progress-fill"></div>
     </div>
   </div>
 
-  <div id="toast" role="status" aria-live="polite"></div>
-
-  <!-- ══════════════════════════════════════════════════════
-       APP ROOT
-       ══════════════════════════════════════════════════════ -->
-  <main id="app">
-
-    <!-- Sync status banner -->
-    <div id="sync-banner" class="syncing">
-      <span class="sync-dot pulse"></span>
-      <span id="sync-text">Connecting to cloud…</span>
+  <!-- Ticker stats -->
+  <div id="ticker">
+    <div class="ticker-item">
+      <span class="ticker-num" id="t-total">0</span>
+      <span class="ticker-label">Total</span>
+      <div class="ticker-accent-bar"></div>
     </div>
-
-    <!-- Header -->
-    <header id="header" class="glass-panel">
-      <div class="header-left">
-        <p class="app-eyebrow">Task OS</p>
-        <h1 class="app-title">Meridian</h1>
-        <p class="header-subtitle" id="date-display"></p>
-      </div>
-      <div class="progress-ring-wrap" aria-label="Task completion">
-        <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%"   stop-color="#52D9A3"/>
-              <stop offset="100%" stop-color="#6C63FF"/>
-            </linearGradient>
-          </defs>
-          <circle class="ring-track" cx="36" cy="36" r="30"/>
-          <circle class="ring-fill" id="ring-fill" cx="36" cy="36" r="30"
-            stroke-dasharray="188.5" stroke-dashoffset="188.5"/>
-        </svg>
-        <div class="ring-inner">
-          <span class="ring-pct" id="ring-pct">0%</span>
-          <span class="ring-label">Done</span>
-        </div>
-      </div>
-    </header>
-
-    <!-- Stats -->
-    <div id="stats-bar">
-      <div class="stat-card glass-panel"><span class="stat-value" id="stat-total">0</span><span class="stat-label">Total</span></div>
-      <div class="stat-card glass-panel"><span class="stat-value" id="stat-done">0</span><span class="stat-label">Done</span></div>
-      <div class="stat-card glass-panel"><span class="stat-value" id="stat-left">0</span><span class="stat-label">Left</span></div>
+    <div class="ticker-item accent-done">
+      <span class="ticker-num" id="t-done">0</span>
+      <span class="ticker-label">Done</span>
+      <div class="ticker-accent-bar"></div>
     </div>
-
-    <!-- Add task -->
-    <div id="add-panel" class="glass-panel">
-      <div class="input-row">
-        <input type="text" id="task-input" placeholder="What needs to be done…"
-          maxlength="200" aria-label="New task" autocomplete="off" autocorrect="off" spellcheck="false"/>
-        <button id="add-btn" aria-label="Add task">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-      </div>
-      <div class="priority-selector" role="group" aria-label="Priority">
-        <button class="priority-btn active" data-p="high">High</button>
-        <button class="priority-btn"        data-p="medium">Mid</button>
-        <button class="priority-btn"        data-p="low">Low</button>
-      </div>
+    <div class="ticker-item accent-left">
+      <span class="ticker-num" id="t-left">0</span>
+      <span class="ticker-label">Left</span>
+      <div class="ticker-accent-bar"></div>
     </div>
+  </div>
 
-    <!-- Filters -->
-    <nav id="filter-tabs" class="glass-panel" role="tablist">
-      <button class="filter-tab active" data-filter="all"    role="tab" aria-selected="true">All</button>
-      <button class="filter-tab"        data-filter="active" role="tab" aria-selected="false">Active</button>
-      <button class="filter-tab"        data-filter="done"   role="tab" aria-selected="false">Done</button>
-      <button class="filter-tab"        data-filter="high"   role="tab" aria-selected="false">🔴 High</button>
-    </nav>
+  <!-- Add zone -->
+  <div id="add-zone">
+    <div class="input-row">
+      <input type="text" id="task-input" placeholder="Type a task…"
+        maxlength="200" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="New task"/>
+      <button id="add-btn" aria-label="Add task">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+    <div class="priority-row">
+      <button class="p-btn active" data-p="high">High</button>
+      <button class="p-btn" data-p="mid">Mid</button>
+      <button class="p-btn" data-p="low">Low</button>
+    </div>
+  </div>
 
-    <!-- Task list -->
-    <section id="task-list" aria-label="Tasks">
-      <div id="empty-state" aria-hidden="true">
-        <div class="empty-icon">
-          <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-        </div>
-        <h3 class="empty-title">Nothing here yet</h3>
-        <p class="empty-sub">Add a task above and start executing at full speed.</p>
-      </div>
-    </section>
+  <!-- Filters -->
+  <div id="filters" role="tablist">
+    <button class="f-pill active" data-f="all">All</button>
+    <button class="f-pill" data-f="active">Active</button>
+    <button class="f-pill" data-f="done">Done</button>
+    <button class="f-pill" data-f="high">🔴 High</button>
+  </div>
 
-  </main>
+  <!-- Task list -->
+  <div id="task-list">
+    <div id="empty">
+      <div class="empty-glyph">ZERO</div>
+      <p class="empty-label">No tasks. Say "Meridian" or type above.</p>
+    </div>
+  </div>
 
-  <!-- ══════════════════════════════════════════════════════
-       JAVASCRIPT
-       ══════════════════════════════════════════════════════ -->
-  <script>
-  'use strict';
+</main>
 
-  /* ────────────────────────────────────────────────────────
-     CONFIG — Supabase credentials (auto-injected)
-     ──────────────────────────────────────────────────────── */
-  const SUPABASE_URL    = 'https://yloxybwewqwlbwdiwitf.supabase.co';
-  const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlsb3h5Yndld3F3bGJ3ZGl3aXRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MzM1MTksImV4cCI6MjA5MjQwOTUxOX0.Ur3EGWX9Pvea-7OP0PkIFO6vJe91TEHyvPF1KJGckho';
-  const TABLE           = 'tasks';
-  const LS_KEY          = 'meridian_offline_v1';
+<!-- Voice FAB -->
+<button id="voice-fab" aria-label="Voice input — say Meridian">
+  <svg viewBox="0 0 24 24">
+    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+    <line x1="12" y1="19" x2="12" y2="23"/>
+    <line x1="8" y1="23" x2="16" y2="23"/>
+  </svg>
+</button>
 
-  /* ────────────────────────────────────────────────────────
-     SUPABASE CLIENT
-     ──────────────────────────────────────────────────────── */
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
-    realtime: { params: { eventsPerSecond: 20 } }
-  });
+<div id="voice-hint">Say "Meridian" to add a task</div>
 
-  /* ────────────────────────────────────────────────────────
-     UTILS
-     ──────────────────────────────────────────────────────── */
-  const Utils = {
-    id:          () => `t_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
-    timeLabel:   ts => new Date(ts).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }),
-    dateDisplay: () => new Date().toLocaleDateString('en-US', { weekday:'long', month:'short', day:'numeric' }),
-    escape:      s  => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'),
-    clamp:       (v,lo,hi) => Math.min(Math.max(v,lo),hi),
-  };
+<!-- ══════════════════════════════════════════════
+     SCRIPT
+══════════════════════════════════════════════ -->
+<script>
+'use strict';
 
-  /* ────────────────────────────────────────────────────────
-     LOCAL CACHE — localStorage fallback when offline
-     ──────────────────────────────────────────────────────── */
-  const Cache = {
-    load()         { try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; } catch { return []; } },
-    save(tasks)    { try { localStorage.setItem(LS_KEY, JSON.stringify(tasks)); } catch {} },
-  };
+/* ─── CONFIG ─────────────────────────────────── */
+const SB_URL  = 'https://yloxybwewqwlbwdiwitf.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlsb3h5Yndld3F3bGJ3ZGl3aXRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MzM1MTksImV4cCI6MjA5MjQwOTUxOX0.Ur3EGWX9Pvea-7OP0PkIFO6vJe91TEHyvPF1KJGckho';
+const TABLE   = 'tasks';
+const LS_KEY  = 'meridian_cache_v2';
 
-  /* ────────────────────────────────────────────────────────
-     APP STATE (in-memory, source of truth for UI)
-     ──────────────────────────────────────────────────────── */
-  const State = {
-    tasks:    [],           // full unfiltered list
-    filter:   'all',
-    priority: 'high',
-    online:   false,        // supabase connected?
-    _prevPct: 0,
-    celebShown: false,
-  };
+/* ─── SUPABASE ───────────────────────────────── */
+const sb = supabase.createClient(SB_URL, SB_ANON, {
+  realtime: { params: { eventsPerSecond: 20 } }
+});
 
-  /* ────────────────────────────────────────────────────────
-     DOM REFS
-     ──────────────────────────────────────────────────────── */
-  const $  = id => document.getElementById(id);
-  const DOM = {
-    app:          $('app'),
-    taskList:     $('task-list'),
-    emptyState:   $('empty-state'),
-    taskInput:    $('task-input'),
-    addBtn:       $('add-btn'),
-    filterTabs:   $('filter-tabs'),
-    ringFill:     $('ring-fill'),
-    ringPct:      $('ring-pct'),
-    statTotal:    $('stat-total'),
-    statDone:     $('stat-done'),
-    statLeft:     $('stat-left'),
-    dateDisplay:  $('date-display'),
-    toast:        $('toast'),
-    celebration:  $('celebration'),
-    canvas:       $('particle-canvas'),
-    syncBanner:   $('sync-banner'),
-    syncText:     $('sync-text'),
-    syncDot:      $('sync-banner').querySelector('.sync-dot'),
-    priorityBtns: document.querySelectorAll('.priority-btn'),
-  };
+/* ─── STATE ──────────────────────────────────── */
+const S = {
+  tasks:    [],
+  filter:   'all',
+  priority: 'high',
+  online:   false,
+  prevPct:  0,
+  celShown: false,
+};
 
-  /* ────────────────────────────────────────────────────────
-     SYNC BANNER
-     ──────────────────────────────────────────────────────── */
-  const Banner = {
-    set(state, msg) {
-      DOM.syncBanner.className = state;   // 'online' | 'offline' | 'syncing' | 'error'
-      DOM.syncText.textContent = msg;
-      DOM.syncDot.classList.toggle('pulse', state !== 'online');
-    }
-  };
+/* ─── CACHE ──────────────────────────────────── */
+const Cache = {
+  load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY))||[]; }catch{ return[]; } },
+  save(t){ try{ localStorage.setItem(LS_KEY,JSON.stringify(t)); }catch{} }
+};
 
-  /* ────────────────────────────────────────────────────────
-     RING
-     ──────────────────────────────────────────────────────── */
-  const CIRC = 2 * Math.PI * 30; // ≈ 188.5
-  function updateRing(pct) {
-    DOM.ringFill.style.strokeDashoffset = CIRC - (pct / 100) * CIRC;
-    DOM.ringPct.textContent = `${pct}%`;
-  }
+/* ─── UTILS ──────────────────────────────────── */
+const uid   = ()=>`t_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+const esc   = s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const ttime = ts=>new Date(ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
 
-  /* ────────────────────────────────────────────────────────
-     TOAST
-     ──────────────────────────────────────────────────────── */
-  let _toastTimer;
-  function toast(msg, ms = 2400) {
-    clearTimeout(_toastTimer);
-    DOM.toast.textContent = msg;
-    DOM.toast.classList.add('show');
-    _toastTimer = setTimeout(() => DOM.toast.classList.remove('show'), ms);
-  }
+/* ─── DOM ────────────────────────────────────── */
+const $=id=>document.getElementById(id);
+const D={
+  list:       $('task-list'),
+  empty:      $('empty'),
+  input:      $('task-input'),
+  addBtn:     $('add-btn'),
+  filters:    $('filters'),
+  progFill:   $('progress-fill'),
+  tTotal:     $('t-total'),
+  tDone:      $('t-done'),
+  tLeft:      $('t-left'),
+  heroDate:   $('hero-date'),
+  toast:      $('toast'),
+  celebrate:  $('celebrate'),
+  canvas:     $('particle-canvas'),
+  syncPill:   $('sync-pill'),
+  syncDot:    $('sync-dot'),
+  syncText:   $('sync-text'),
+  pBtns:      document.querySelectorAll('.p-btn'),
+  fabBtn:     $('voice-fab'),
+  vModal:     $('voice-modal'),
+  vsStatus:   $('vs-status'),
+  vsText:     $('vs-text'),
+  vsCursor:   $('vs-cursor'),
+  vsConfirm:  $('vs-confirm'),
+  vsCancel:   $('vs-cancel'),
+  vsPBtns:    document.querySelectorAll('.vs-p-btn'),
+  voiceHint:  $('voice-hint'),
+};
 
-  /* ────────────────────────────────────────────────────────
-     PARTICLES — Canvas confetti burst
-     ──────────────────────────────────────────────────────── */
-  const Particles = (() => {
-    let pts = [], animId;
-    const ctx = DOM.canvas.getContext('2d');
-    const COLS = ['#6C63FF','#FF6B6B','#52D9A3','#FFB347','#fff','#9B6BFF'];
+/* ═══════════════════════════════════════════════
+   GENERATIVE BACKGROUND — flowing orbs on canvas
+═══════════════════════════════════════════════ */
+(function initBG(){
+  const c  = document.getElementById('bg-canvas');
+  const cx = c.getContext('2d');
+  let W,H;
 
-    function resize() { DOM.canvas.width = innerWidth; DOM.canvas.height = innerHeight; }
+  const orbs = [
+    { x:.15, y:.2, r:.35, hue:260, speed:.0004 },
+    { x:.85, y:.15, r:.3, hue:220, speed:.0003 },
+    { x:.5,  y:.7, r:.4, hue:280, speed:.0005 },
+    { x:.1,  y:.8, r:.25, hue:240, speed:.0006 },
+    { x:.9,  y:.75, r:.28, hue:200, speed:.0004 },
+  ];
 
-    return {
-      burst() {
-        resize(); pts = [];
-        const N = Math.min(innerWidth < 480 ? 60 : 120, 150);
-        for (let i = 0; i < N; i++) {
-          pts.push({
-            x: Math.random() * DOM.canvas.width,
-            y: Math.random() * DOM.canvas.height * 0.5,
-            vx: (Math.random()-.5)*7, vy: (Math.random()-.5)*10-5,
-            r: Math.random()*5+2, color: COLS[Math.floor(Math.random()*COLS.length)],
-            a: 1, rot: Math.random()*Math.PI*2, rv: (Math.random()-.5)*0.15,
-            rect: Math.random() > .5
-          });
-        }
-        DOM.canvas.style.opacity = 1;
-        cancelAnimationFrame(animId);
+  function resize(){ W=c.width=innerWidth; H=c.height=innerHeight; }
+  window.addEventListener('resize',resize); resize();
 
-        (function draw() {
-          ctx.clearRect(0,0,DOM.canvas.width,DOM.canvas.height);
-          let alive = 0;
-          pts.forEach(p => {
-            p.x+=p.vx; p.y+=p.vy; p.vy+=0.25; p.vx*=0.99;
-            p.a = Math.max(0, p.a-.008); p.rot+=p.rv;
-            if (p.a<=0) return; alive++;
-            ctx.save(); ctx.globalAlpha=p.a;
-            ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.fillStyle=p.color;
-            if (p.rect) ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);
-            else { ctx.beginPath(); ctx.arc(0,0,p.r,0,Math.PI*2); ctx.fill(); }
-            ctx.restore();
-          });
-          if (alive>0) animId=requestAnimationFrame(draw);
-          else DOM.canvas.style.opacity=0;
-        })();
-      }
-    };
+  let t=0;
+  (function draw(){
+    cx.clearRect(0,0,W,H);
+    // Deep base
+    cx.fillStyle='#02020A';cx.fillRect(0,0,W,H);
+
+    orbs.forEach(o=>{
+      const ox = (o.x + Math.sin(t*o.speed*1.3)*0.08)*W;
+      const oy = (o.y + Math.cos(t*o.speed)*0.08)*H;
+      const rad = o.r * Math.min(W,H);
+      const g = cx.createRadialGradient(ox,oy,0,ox,oy,rad);
+      g.addColorStop(0,`hsla(${o.hue},70%,30%,0.12)`);
+      g.addColorStop(1,`hsla(${o.hue},70%,30%,0)`);
+      cx.fillStyle=g;
+      cx.beginPath();cx.arc(ox,oy,rad,0,Math.PI*2);cx.fill();
+    });
+
+    // Subtle grid
+    cx.strokeStyle='rgba(255,255,255,0.018)';
+    cx.lineWidth=1;
+    const step=80;
+    for(let x=0;x<W;x+=step){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,H);cx.stroke();}
+    for(let y=0;y<H;y+=step){cx.beginPath();cx.moveTo(0,y);cx.lineTo(W,y);cx.stroke();}
+
+    t++;
+    requestAnimationFrame(draw);
   })();
+})();
 
-  /* ────────────────────────────────────────────────────────
-     CELEBRATION
-     ──────────────────────────────────────────────────────── */
-  function celebrate() {
-    if (State.celebShown) return;
-    State.celebShown = true;
-    Particles.burst();
-    gsap.fromTo(DOM.celebration,
-      { opacity:0, scale:.8 },
-      { opacity:1, scale:1, duration:.6, ease:'back.out(1.4)',
-        onComplete: () => gsap.to(DOM.celebration, { opacity:0, scale:.9, duration:.5, delay:2.5, ease:'power2.in' })
-      }
-    );
-  }
-
-  /* ────────────────────────────────────────────────────────
-     ANIMATOR
-     ──────────────────────────────────────────────────────── */
-  const Anim = {
-    entrance(els) {
-      if (!els.length) return;
-      gsap.fromTo(els,
-        { opacity:0, y:18, scale:.97 },
-        { opacity:1, y:0, scale:1, duration:.5, stagger:.07, ease:'power3.out', clearProps:'opacity,transform' }
-      );
-    },
-    add(el) {
-      gsap.set(el, { opacity:0, scaleY:0, transformOrigin:'top center', height:0 });
-      el.style.height = 'auto';
-      const h = el.getBoundingClientRect().height;
-      el.style.height = '0px';
-      gsap.timeline()
-        .to(el, { height:h, duration:.32, ease:'power2.out' })
-        .to(el, { scaleY:1, opacity:1, duration:.28, ease:'back.out(1.3)' }, '-=0.1')
-        .set(el, { height:'auto', clearProps:'transform' });
-    },
-    remove(el, cb) {
-      const siblings = [...el.parentElement.children].filter(c => c!==el && c.id!=='empty-state');
-      const rects = siblings.map(s => s.getBoundingClientRect());
-      gsap.to(el, {
-        opacity:0, scaleX:.92, scaleY:0, height:0, marginBottom:0,
-        duration:.32, ease:'power3.in',
-        onComplete: () => {
-          el.remove(); cb && cb();
-          siblings.forEach((s,i) => {
-            if (!s.isConnected) return;
-            const dy = rects[i].top - s.getBoundingClientRect().top;
-            if (Math.abs(dy)<1) return;
-            gsap.fromTo(s, { y:dy }, { y:0, duration:.38, ease:'power3.out', clearProps:'transform' });
-          });
-        }
+/* ═══════════════════════════════════════════════
+   PARTICLES
+═══════════════════════════════════════════════ */
+const Particles=(()=>{
+  let pts=[],aid;
+  const ctx=D.canvas.getContext('2d');
+  const COLS=['#C8FF00','#7B61FF','#FF4D6D','#FFAA00','#00E5CC','#fff'];
+  return {
+    burst(){
+      D.canvas.width=innerWidth;D.canvas.height=innerHeight;
+      pts=[];
+      const N=Math.min(innerWidth<480?70:140,160);
+      for(let i=0;i<N;i++) pts.push({
+        x:Math.random()*D.canvas.width,
+        y:Math.random()*D.canvas.height*0.6,
+        vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*12-6,
+        r:Math.random()*5+2,
+        color:COLS[Math.floor(Math.random()*COLS.length)],
+        a:1,rot:Math.random()*Math.PI*2,rv:(Math.random()-.5)*0.18,
+        sq:Math.random()>.5
       });
-    },
-    toggle(el, done) {
-      const check = el.querySelector('.task-check');
-      const path  = el.querySelector('.check-path');
-      const text  = el.querySelector('.task-text');
-      if (done) {
-        gsap.timeline()
-          .to(check, { scale:1.25, duration:.12, ease:'power2.out' })
-          .to(check, { scale:1,    duration:.25, ease:'back.out(2)' })
-          .to(text,  { opacity:.35, duration:.3 }, '-=0.2');
-        if (path) { path.style.strokeDashoffset='20'; setTimeout(()=>{ path.style.transition='stroke-dashoffset 0.35s ease'; path.style.strokeDashoffset='0'; },80); }
-      } else {
-        gsap.to(text, { opacity:1, duration:.25 });
-        if (path) { path.style.transition='stroke-dashoffset 0.2s ease'; path.style.strokeDashoffset='20'; }
-      }
-    },
-    pulse(el) {
-      gsap.timeline()
-        .to(el, { scale:.9, duration:.1 })
-        .to(el, { scale:1,  duration:.3, ease:'back.out(2)' });
-    },
-    remoteFlash(el) {
-      el.classList.remove('remote-flash');
-      void el.offsetWidth; // reflow
-      el.classList.add('remote-flash');
-      setTimeout(()=>el.classList.remove('remote-flash'), 900);
+      D.canvas.style.opacity=1;
+      cancelAnimationFrame(aid);
+      (function draw(){
+        ctx.clearRect(0,0,D.canvas.width,D.canvas.height);
+        let alive=0;
+        pts.forEach(p=>{
+          p.x+=p.vx;p.y+=p.vy;p.vy+=0.28;p.vx*=0.99;
+          p.a=Math.max(0,p.a-.009);p.rot+=p.rv;
+          if(p.a<=0)return;alive++;
+          ctx.save();ctx.globalAlpha=p.a;ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.color;
+          if(p.sq)ctx.fillRect(-p.r,-p.r/2,p.r*2,p.r);
+          else{ctx.beginPath();ctx.arc(0,0,p.r,0,Math.PI*2);ctx.fill();}
+          ctx.restore();
+        });
+        if(alive>0)aid=requestAnimationFrame(draw);
+        else D.canvas.style.opacity=0;
+      })();
     }
   };
+})();
 
-  /* ────────────────────────────────────────────────────────
-     TILT — 3D cursor/gyro effect
-     ──────────────────────────────────────────────────────── */
-  const MAX_DEG = 4;
-  function applyTilt(rx, ry) {
-    gsap.to(DOM.app, { rotateX:rx, rotateY:ry, duration:1.2, ease:'power2.out', transformPerspective:1200, overwrite:'auto' });
-  }
-  document.addEventListener('mousemove', e => {
-    applyTilt(((e.clientY - innerHeight/2) / (innerHeight/2)) * -MAX_DEG,
-              ((e.clientX - innerWidth/2)  / (innerWidth/2))  *  MAX_DEG);
+/* ═══════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════ */
+let _tt;
+function toast(msg,ms=2600){
+  clearTimeout(_tt);
+  D.toast.textContent=msg;
+  D.toast.classList.add('show');
+  _tt=setTimeout(()=>D.toast.classList.remove('show'),ms);
+}
+
+/* ═══════════════════════════════════════════════
+   SYNC BANNER
+═══════════════════════════════════════════════ */
+function setSyncState(state,label){
+  D.syncPill.className='sync-pill '+state;
+  D.syncText.textContent=label;
+  D.syncDot.classList.toggle('blink',state!=='online');
+}
+
+/* ═══════════════════════════════════════════════
+   CELEBRATION
+═══════════════════════════════════════════════ */
+let celShown=false;
+function celebrate(){
+  if(celShown)return;celShown=true;
+  Particles.burst();
+  gsap.fromTo(D.celebrate,{opacity:0,scale:.75},{opacity:1,scale:1,duration:.55,ease:'back.out(1.5)',
+    onComplete:()=>gsap.to(D.celebrate,{opacity:0,scale:.9,duration:.5,delay:2.8,ease:'power2.in'})
   });
-  window.addEventListener('deviceorientation', e => {
-    if (e.beta==null) return;
-    applyTilt(Utils.clamp(e.beta-45,-MAX_DEG,MAX_DEG), Utils.clamp(e.gamma,-MAX_DEG,MAX_DEG));
-  }, true);
+}
 
-  /* ────────────────────────────────────────────────────────
-     RENDERER — Build task DOM node
-     ──────────────────────────────────────────────────────── */
-  function buildNode(task) {
-    const el = document.createElement('article');
-    el.className = `task-item glass-panel${task.done ? ' done' : ''}`;
-    el.dataset.id       = task.id;
-    el.dataset.priority = task.priority;
-    el.setAttribute('role','listitem');
-    el.innerHTML = `
-      <div class="task-inner">
-        <button class="task-check" aria-label="${task.done?'Mark incomplete':'Mark complete'}">
-          <svg viewBox="0 0 14 14"><polyline class="check-path" points="2,7 5.5,10.5 12,3"/></svg>
+/* ═══════════════════════════════════════════════
+   STATS
+═══════════════════════════════════════════════ */
+function updateStats(){
+  const total=S.tasks.length;
+  const done=S.tasks.filter(t=>t.done).length;
+  const pct=total?Math.round((done/total)*100):0;
+  D.tTotal.textContent=total;
+  D.tDone.textContent=done;
+  D.tLeft.textContent=total-done;
+  D.progFill.style.width=pct+'%';
+  if(pct===100&&total>0&&S.prevPct!==100) setTimeout(celebrate,350);
+  if(pct<100) celShown=false;
+  S.prevPct=pct;
+}
+
+/* ═══════════════════════════════════════════════
+   FILTER
+═══════════════════════════════════════════════ */
+function filtered(){
+  switch(S.filter){
+    case'active': return S.tasks.filter(t=>!t.done);
+    case'done':   return S.tasks.filter(t=> t.done);
+    case'high':   return S.tasks.filter(t=>t.priority==='high');
+    default:      return S.tasks;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   BUILD CARD NODE
+═══════════════════════════════════════════════ */
+function buildCard(task){
+  const el=document.createElement('div');
+  el.className='task-card'+(task.done?' done':'');
+  el.dataset.id=task.id;
+  el.dataset.p=task.priority;
+  el.setAttribute('role','listitem');
+  el.innerHTML=`
+    <div class="card-inner">
+      <button class="c-box" aria-label="${task.done?'Mark incomplete':'Mark complete'}">
+        <svg viewBox="0 0 14 14"><polyline class="ck" points="2,7 5.5,10.5 12,3"/></svg>
+      </button>
+      <div class="c-body">
+        <p class="c-text">${esc(task.text)}</p>
+        <div class="c-foot">
+          <span class="c-priority">${task.priority}</span>
+          <span class="c-time">${ttime(task.created_at)}</span>
+        </div>
+      </div>
+      <div class="c-actions">
+        <button class="act e" aria-label="Edit">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
-        <div class="task-content">
-          <p class="task-text">${Utils.escape(task.text)}</p>
-          <div class="task-meta">
-            <span class="priority-pill">${task.priority}</span>
-            <span class="task-time">${Utils.timeLabel(task.created_at)}</span>
-          </div>
-        </div>
-        <div class="task-actions">
-          <button class="action-btn edit" aria-label="Edit">
-            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          </button>
-          <button class="action-btn del" aria-label="Delete">
-            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-          </button>
-        </div>
-      </div>`;
-    return el;
+        <button class="act d" aria-label="Delete">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        </button>
+      </div>
+    </div>`;
+  return el;
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════ */
+function render(entrance=false){
+  const list=filtered();
+  [...D.list.children].forEach(c=>{if(c.id!=='empty')c.remove();});
+  if(!list.length){D.empty.classList.add('show');}
+  else{D.empty.classList.remove('show');}
+  const els=[];
+  list.forEach(task=>{
+    const el=buildCard(task);
+    D.list.appendChild(el);
+    els.push(el);
+  });
+  if(entrance&&els.length){
+    gsap.fromTo(els,{opacity:0,y:16,scale:.97},
+      {opacity:1,y:0,scale:1,duration:.45,stagger:.065,ease:'power3.out',clearProps:'opacity,transform'});
   }
+  updateStats();
+}
 
-  /* ────────────────────────────────────────────────────────
-     STATS UPDATE — Ring + counters
-     ──────────────────────────────────────────────────────── */
-  function updateStats() {
-    const total = State.tasks.length;
-    const done  = State.tasks.filter(t=>t.done).length;
-    const pct   = total ? Math.round((done/total)*100) : 0;
+/* ═══════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════ */
+function animAdd(el){
+  gsap.set(el,{opacity:0,scaleY:0,transformOrigin:'top center',height:0});
+  el.style.height='auto';
+  const h=el.getBoundingClientRect().height;
+  el.style.height='0px';
+  gsap.timeline()
+    .to(el,{height:h,duration:.3,ease:'power2.out'})
+    .to(el,{scaleY:1,opacity:1,duration:.25,ease:'back.out(1.4)'},'-=0.08')
+    .set(el,{height:'auto',clearProps:'transform'});
+}
 
-    DOM.statTotal.textContent = total;
-    DOM.statDone.textContent  = done;
-    DOM.statLeft.textContent  = total - done;
-    updateRing(pct);
-
-    if (pct===100 && total>0 && State._prevPct!==100) setTimeout(celebrate, 400);
-    if (pct<100) State.celebShown = false;
-    State._prevPct = pct;
-  }
-
-  /* ────────────────────────────────────────────────────────
-     FILTER SELECTOR
-     ──────────────────────────────────────────────────────── */
-  function filtered() {
-    const { tasks, filter } = State;
-    switch (filter) {
-      case 'active': return tasks.filter(t=>!t.done);
-      case 'done':   return tasks.filter(t=> t.done);
-      case 'high':   return tasks.filter(t=>t.priority==='high');
-      default:       return tasks;
-    }
-  }
-
-  /* ────────────────────────────────────────────────────────
-     FULL RENDER — Rebuild list from State.tasks
-     ──────────────────────────────────────────────────────── */
-  function render(entrance = false) {
-    const list = filtered();
-
-    // Remove all task nodes (keep empty-state sentinel)
-    [...DOM.taskList.children].forEach(c => { if (c.id!=='empty-state') c.remove(); });
-
-    if (!list.length) {
-      DOM.emptyState.classList.add('visible');
-      DOM.emptyState.removeAttribute('aria-hidden');
-    } else {
-      DOM.emptyState.classList.remove('visible');
-      DOM.emptyState.setAttribute('aria-hidden','true');
-    }
-
-    const newEls = list.map(task => {
-      const el = buildNode(task);
-      DOM.taskList.appendChild(el);
-      return el;
-    });
-
-    if (entrance && newEls.length) Anim.entrance(newEls);
-    updateStats();
-  }
-
-  /* ────────────────────────────────────────────────────────
-     SUPABASE CRUD
-     ──────────────────────────────────────────────────────── */
-  const DB = {
-    async fetchAll() {
-      const { data, error } = await sb.from(TABLE).select('*').order('created_at', { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-
-    async insert(task) {
-      const { error } = await sb.from(TABLE).insert({
-        id:         task.id,
-        text:       task.text,
-        priority:   task.priority,
-        done:       false,
-        created_at: new Date().toISOString(),
+function animRemove(el,cb){
+  const sibs=[...el.parentElement.children].filter(c=>c!==el&&c.id!=='empty');
+  const rects=sibs.map(s=>s.getBoundingClientRect());
+  gsap.to(el,{opacity:0,scaleX:.9,scaleY:0,height:0,marginBottom:0,
+    duration:.28,ease:'power3.in',
+    onComplete:()=>{
+      el.remove();cb&&cb();
+      sibs.forEach((s,i)=>{
+        if(!s.isConnected)return;
+        const dy=rects[i].top-s.getBoundingClientRect().top;
+        if(Math.abs(dy)<1)return;
+        gsap.fromTo(s,{y:dy},{y:0,duration:.35,ease:'power3.out',clearProps:'transform'});
       });
-      if (error) throw error;
-    },
-
-    async update(id, changes) {
-      const { error } = await sb.from(TABLE).update(changes).eq('id', id);
-      if (error) throw error;
-    },
-
-    async remove(id) {
-      const { error } = await sb.from(TABLE).delete().eq('id', id);
-      if (error) throw error;
     }
-  };
+  });
+}
 
-  /* ────────────────────────────────────────────────────────
-     REALTIME SUBSCRIPTION
-     Listens for INSERT / UPDATE / DELETE from ANY client
-     and patches State.tasks + DOM without full re-render.
-     ──────────────────────────────────────────────────────── */
-  function subscribeRealtime() {
-    sb.channel('tasks-live')
-      .on('postgres_changes', { event:'*', schema:'public', table:TABLE }, payload => {
+function animToggle(el,done){
+  const box=el.querySelector('.c-box');
+  const path=el.querySelector('.ck');
+  const text=el.querySelector('.c-text');
+  if(done){
+    gsap.timeline()
+      .to(box,{scale:1.3,duration:.1,ease:'power2.out'})
+      .to(box,{scale:1,duration:.28,ease:'back.out(2)'});
+    if(path){path.style.strokeDashoffset='14';
+      setTimeout(()=>{path.style.transition='stroke-dashoffset 0.3s ease';path.style.strokeDashoffset='0';},80);}
+    gsap.to(text,{opacity:.3,duration:.3});
+  } else {
+    if(path){path.style.transition='stroke-dashoffset 0.15s';path.style.strokeDashoffset='14';}
+    gsap.to(text,{opacity:1,duration:.25});
+  }
+}
 
-        const { eventType, new: nw, old } = payload;
+/* ═══════════════════════════════════════════════
+   DB LAYER
+═══════════════════════════════════════════════ */
+const DB={
+  async all(){ const{data,error}=await sb.from(TABLE).select('*').order('created_at',{ascending:false}); if(error)throw error; return data; },
+  async insert(t){ const{error}=await sb.from(TABLE).insert({id:t.id,text:t.text,priority:t.priority,done:false,created_at:t.created_at}); if(error)throw error; },
+  async update(id,ch){ const{error}=await sb.from(TABLE).update(ch).eq('id',id); if(error)throw error; },
+  async remove(id){ const{error}=await sb.from(TABLE).delete().eq('id',id); if(error)throw error; }
+};
 
-        if (eventType === 'INSERT') {
-          // Skip if we already have it (own insert)
-          if (State.tasks.find(t=>t.id===nw.id)) return;
-          State.tasks.unshift(nw);
-          Cache.save(State.tasks);
-          render();
-          // Flash the new node
-          const el = DOM.taskList.querySelector(`[data-id="${nw.id}"]`);
-          if (el) { Anim.add(el); Anim.remoteFlash(el); }
-          toast('📡 New task synced');
-        }
+/* ═══════════════════════════════════════════════
+   REALTIME
+═══════════════════════════════════════════════ */
+function subscribeRT(){
+  sb.channel('tasks-rt').on('postgres_changes',{event:'*',schema:'public',table:TABLE},p=>{
+    const{eventType,new:nw,old}=p;
 
-        if (eventType === 'UPDATE') {
-          const idx = State.tasks.findIndex(t=>t.id===nw.id);
-          if (idx===-1) return;
-          State.tasks[idx] = { ...State.tasks[idx], ...nw };
-          Cache.save(State.tasks);
-          // Patch DOM in-place
-          const el = DOM.taskList.querySelector(`[data-id="${nw.id}"]`);
-          if (el) {
-            const textEl = el.querySelector('.task-text');
-            if (textEl) textEl.textContent = nw.text;
-            el.classList.toggle('done', nw.done);
-            Anim.remoteFlash(el);
-          }
-          updateStats();
-        }
+    if(eventType==='INSERT'){
+      if(S.tasks.find(t=>t.id===nw.id))return;
+      S.tasks.unshift(nw);Cache.save(S.tasks);render();
+      const el=D.list.querySelector(`[data-id="${nw.id}"]`);
+      if(el){animAdd(el);setTimeout(()=>{el.classList.add('rfx');setTimeout(()=>el.classList.remove('rfx'),900);},300);}
+      toast('📡 Task synced from another device');
+    }
+    if(eventType==='UPDATE'){
+      const i=S.tasks.findIndex(t=>t.id===nw.id);if(i===-1)return;
+      S.tasks[i]={...S.tasks[i],...nw};Cache.save(S.tasks);
+      const el=D.list.querySelector(`[data-id="${nw.id}"]`);
+      if(el){
+        const tx=el.querySelector('.c-text');if(tx)tx.textContent=nw.text;
+        el.classList.toggle('done',nw.done);
+        el.classList.add('rfx');setTimeout(()=>el.classList.remove('rfx'),900);
+      }
+      updateStats();
+    }
+    if(eventType==='DELETE'){
+      if(!S.tasks.find(t=>t.id===old.id))return;
+      S.tasks=S.tasks.filter(t=>t.id!==old.id);Cache.save(S.tasks);
+      const el=D.list.querySelector(`[data-id="${old.id}"]`);
+      if(el)animRemove(el,()=>updateStats());else updateStats();
+    }
+  }).subscribe(status=>{
+    if(status==='SUBSCRIBED'){S.online=true;setSyncState('online','Live sync');}
+  });
+}
 
-        if (eventType === 'DELETE') {
-          if (!State.tasks.find(t=>t.id===old.id)) return;
-          State.tasks = State.tasks.filter(t=>t.id!==old.id);
-          Cache.save(State.tasks);
-          const el = DOM.taskList.querySelector(`[data-id="${old.id}"]`);
-          if (el) Anim.remove(el, ()=>updateStats());
-          else updateStats();
-        }
-      })
-      .subscribe(status => {
-        if (status === 'SUBSCRIBED') {
-          State.online = true;
-          Banner.set('online', '⚡ Live — changes sync across all devices');
-        }
-      });
+/* ═══════════════════════════════════════════════
+   CRUD ACTIONS
+═══════════════════════════════════════════════ */
+async function doAdd(text,priority){
+  text=text.trim();if(!text)return;
+  const task={id:uid(),text,priority:priority||S.priority,done:false,created_at:new Date().toISOString()};
+  S.tasks.unshift(task);Cache.save(S.tasks);
+  render();
+  const el=D.list.querySelector(`[data-id="${task.id}"]`);if(el)animAdd(el);
+  gsap.timeline().to(D.addBtn,{scale:.88,duration:.1}).to(D.addBtn,{scale:1,duration:.3,ease:'back.out(2)'});
+  toast('✓ Task added');
+  if(S.online){try{await DB.insert(task);}catch{toast('⚠ Saved locally',3000);}}
+}
+
+async function doToggle(id,el){
+  const task=S.tasks.find(t=>t.id===id);if(!task)return;
+  task.done=!task.done;Cache.save(S.tasks);
+  el.classList.toggle('done',task.done);
+  animToggle(el,task.done);updateStats();
+  if(S.online){try{await DB.update(id,{done:task.done});}catch{}}
+}
+
+async function doDelete(id,el){
+  animRemove(el,async()=>{
+    S.tasks=S.tasks.filter(t=>t.id!==id);Cache.save(S.tasks);updateStats();
+    toast('🗑 Deleted');
+    if(S.online){try{await DB.remove(id);}catch{}}
+  });
+}
+
+async function doEdit(id,el){
+  const task=S.tasks.find(t=>t.id===id);if(!task)return;
+  const tx=el.querySelector('.c-text');const orig=task.text;
+  const inp=document.createElement('input');
+  inp.className='inline-edit';inp.value=orig;inp.maxLength=200;
+  tx.replaceWith(inp);inp.focus();inp.select();
+  async function commit(){
+    const nv=inp.value.trim()||orig;
+    const p=document.createElement('p');p.className='c-text';p.textContent=nv;
+    if(task.done)p.style.textDecoration='line-through';
+    inp.replaceWith(p);
+    if(nv!==orig){task.text=nv;Cache.save(S.tasks);toast('✎ Updated');
+      if(S.online){try{await DB.update(id,{text:nv});}catch{}}}
+  }
+  inp.addEventListener('blur',commit);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}if(e.key==='Escape'){inp.value=orig;inp.blur();}});
+}
+
+/* ═══════════════════════════════════════════════
+   EVENT DELEGATION
+═══════════════════════════════════════════════ */
+D.list.addEventListener('click',e=>{
+  const card=e.target.closest('.task-card');if(!card)return;
+  const id=card.dataset.id;
+  if(e.target.closest('.c-box'))doToggle(id,card);
+  else if(e.target.closest('.act.e'))doEdit(id,card);
+  else if(e.target.closest('.act.d'))doDelete(id,card);
+});
+
+D.addBtn.addEventListener('click',()=>doAdd(D.input.value));
+D.input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doAdd(D.input.value);D.input.value='';}});
+
+// Priority tabs
+D.pBtns.forEach(b=>b.addEventListener('click',()=>{
+  D.pBtns.forEach(x=>x.classList.remove('active'));b.classList.add('active');S.priority=b.dataset.p;
+}));
+
+// Filter pills
+D.filters.addEventListener('click',e=>{
+  const pill=e.target.closest('.f-pill');if(!pill)return;
+  document.querySelectorAll('.f-pill').forEach(p=>{p.classList.remove('active');p.setAttribute('aria-selected','false');});
+  pill.classList.add('active');S.filter=pill.dataset.f;render();
+});
+
+/* ═══════════════════════════════════════════════
+   VOICE SYSTEM
+   Wake word: "Meridian" → opens modal → mic records task
+   → user sets priority → confirm → doAdd()
+═══════════════════════════════════════════════ */
+const Voice=(()=>{
+  // State
+  let recognition=null;
+  let wakeListening=false;
+  let taskListening=false;
+  let vsPriority='high';
+  let vsTaskText='';
+
+  // Check support
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ console.warn('SpeechRecognition not supported'); return {init(){}}; }
+
+  // Modal priority selector
+  D.vsPBtns.forEach(b=>b.addEventListener('click',()=>{
+    D.vsPBtns.forEach(x=>x.classList.remove('sel'));b.classList.add('sel');vsPriority=b.dataset.p;
+  }));
+
+  // Close / cancel
+  function closeModal(){
+    D.vModal.classList.remove('open');
+    D.vsText.textContent='';D.vsCursor.style.display='';
+    D.vsConfirm.disabled=true;
+    D.vsStatus.textContent='Listening…';
+    vsTaskText='';
+    stopTaskListen();
   }
 
-  /* ────────────────────────────────────────────────────────
-     EVENT: ADD TASK
-     ──────────────────────────────────────────────────────── */
-  async function addTask() {
-    const text = DOM.taskInput.value.trim();
-    if (!text) {
-      gsap.timeline()
-        .to(DOM.taskInput, { x:-8, duration:.06 })
-        .to(DOM.taskInput, { x: 8, duration:.06 })
-        .to(DOM.taskInput, { x:-5, duration:.05 })
-        .to(DOM.taskInput, { x: 0, duration:.05 });
-      return;
-    }
+  D.vsCancel.addEventListener('click',closeModal);
+  D.vModal.addEventListener('click',e=>{ if(e.target===D.vModal)closeModal(); });
 
-    const task = {
-      id:         Utils.id(),
-      text,
-      priority:   State.priority,
-      done:       false,
-      created_at: new Date().toISOString(),
+  // Confirm
+  D.vsConfirm.addEventListener('click',()=>{
+    if(!vsTaskText.trim())return;
+    doAdd(vsTaskText,vsPriority);
+    closeModal();
+    toast(`🎤 "${vsTaskText}" added`);
+  });
+
+  /* ── TASK RECOGNITION ── */
+  let taskRec=null;
+  function startTaskListen(){
+    taskListening=true;
+    D.vsStatus.textContent='Speak your task…';
+    D.vsCursor.style.display='inline-block';
+
+    taskRec=new SR();
+    taskRec.continuous=true;
+    taskRec.interimResults=true;
+    taskRec.lang='en-US';
+
+    taskRec.onresult=e=>{
+      let interim='',final='';
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        if(e.results[i].isFinal) final+=e.results[i][0].transcript;
+        else interim+=e.results[i][0].transcript;
+      }
+      const display=vsTaskText+final||interim||vsTaskText;
+      D.vsText.textContent=display;
+      if(final){ vsTaskText=(vsTaskText+final).trim(); D.vsText.textContent=vsTaskText; }
+      D.vsConfirm.disabled=!vsTaskText.trim();
     };
 
-    // Optimistic UI — add immediately
-    State.tasks.unshift(task);
-    Cache.save(State.tasks);
-    DOM.taskInput.value = '';
-    render();
-    const el = DOM.taskList.querySelector(`[data-id="${task.id}"]`);
-    if (el) Anim.add(el);
-    Anim.pulse(DOM.addBtn);
-    toast('✓ Task added');
+    taskRec.onerror=e=>{
+      if(e.error==='no-speech') D.vsStatus.textContent='No speech — try again';
+      else D.vsStatus.textContent='Mic error: '+e.error;
+    };
 
-    // Persist to Supabase
-    if (State.online) {
-      try {
-        await DB.insert(task);
-      } catch (e) {
-        toast('⚠️ Saved offline — will sync when reconnected', 3500);
-        Banner.set('offline', 'Offline — tasks saved locally');
+    taskRec.onend=()=>{
+      if(taskListening&&vsTaskText){
+        D.vsStatus.textContent='Done — set priority and confirm';
+        D.vsCursor.style.display='none';
       }
-    } else {
-      toast('📦 Saved locally — not yet synced', 3000);
-    }
+    };
+
+    taskRec.start();
   }
 
-  /* ────────────────────────────────────────────────────────
-     EVENT: TOGGLE DONE
-     ──────────────────────────────────────────────────────── */
-  async function toggleDone(id, el) {
-    const task = State.tasks.find(t=>t.id===id);
-    if (!task) return;
-
-    task.done = !task.done;
-    Cache.save(State.tasks);
-
-    // Patch DOM
-    el.classList.toggle('done', task.done);
-    el.querySelector('.task-check').setAttribute('aria-label', task.done?'Mark incomplete':'Mark complete');
-    Anim.toggle(el, task.done);
-    updateStats();
-
-    if (State.online) {
-      try { await DB.update(id, { done: task.done }); }
-      catch { toast('⚠️ Sync failed — will retry', 2500); }
-    }
+  function stopTaskListen(){
+    taskListening=false;
+    try{taskRec&&taskRec.stop();}catch{}taskRec=null;
   }
 
-  /* ────────────────────────────────────────────────────────
-     EVENT: INLINE EDIT
-     ──────────────────────────────────────────────────────── */
-  async function startEdit(id, el) {
-    const task = State.tasks.find(t=>t.id===id);
-    if (!task) return;
+  /* ── OPEN MODAL ── */
+  function openVoiceModal(){
+    vsTaskText='';
+    D.vsText.textContent='';
+    D.vsConfirm.disabled=true;
+    D.vModal.classList.add('open');
+    D.vsPBtns.forEach(b=>{b.classList.remove('sel');if(b.dataset.p==='high')b.classList.add('sel');});
+    vsPriority='high';
+    // Small delay so animation starts first
+    setTimeout(startTaskListen,350);
+  }
 
-    const textEl = el.querySelector('.task-text');
-    const orig   = task.text;
-    const input  = document.createElement('input');
-    input.type      = 'text';
-    input.value     = orig;
-    input.className = 'task-edit-input';
-    input.maxLength = 200;
-    textEl.replaceWith(input);
-    input.focus(); input.select();
+  /* ── WAKE WORD RECOGNITION ── */
+  let wakeRec=null;
+  function startWakeListen(){
+    if(!SR)return;
+    wakeRec=new SR();
+    wakeRec.continuous=true;
+    wakeRec.interimResults=true;
+    wakeRec.lang='en-US';
 
-    async function commit() {
-      const newText = input.value.trim() || orig;
-      const p = document.createElement('p');
-      p.className   = 'task-text';
-      p.textContent = newText;
-      if (task.done) p.style.textDecoration = 'line-through';
-      input.replaceWith(p);
-
-      if (newText !== orig) {
-        task.text = newText;
-        Cache.save(State.tasks);
-        toast('✎ Updated');
-        if (State.online) {
-          try { await DB.update(id, { text: newText }); }
-          catch { toast('⚠️ Sync failed', 2500); }
+    wakeRec.onresult=e=>{
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        const t=e.results[i][0].transcript.toLowerCase().trim();
+        // Flexible matching — catches "meridian", "meridiem", "Meridian", etc.
+        if(/mer[iy]di[ae]n|meridian|meridiem/.test(t)){
+          stopWakeListen();
+          openVoiceModal();
+          return;
         }
       }
+    };
+
+    wakeRec.onend=()=>{
+      // Auto-restart unless we intentionally stopped
+      if(wakeListening) setTimeout(startWakeListen,500);
+    };
+
+    wakeRec.onerror=e=>{
+      // Only restart on non-fatal errors
+      if(e.error==='no-speech'||e.error==='aborted') return;
+      console.warn('Wake rec error:',e.error);
+    };
+
+    wakeListening=true;
+    try{ wakeRec.start(); }catch{}
+  }
+
+  function stopWakeListen(){
+    wakeListening=false;
+    try{wakeRec&&wakeRec.stop();}catch{}wakeRec=null;
+  }
+
+  /* ── FAB BUTTON — manual trigger ── */
+  D.fabBtn.addEventListener('click',()=>{
+    if(D.vModal.classList.contains('open')){closeModal();return;}
+    openVoiceModal();
+    // Pulse FAB
+    gsap.timeline()
+      .to(D.fabBtn,{scale:.88,duration:.1})
+      .to(D.fabBtn,{scale:1.1,duration:.25,ease:'back.out(2)'})
+      .to(D.fabBtn,{scale:1,duration:.2});
+  });
+
+  return {
+    init(){
+      // Start wake word listening after 1s
+      setTimeout(()=>{
+        startWakeListen();
+        // Show hint briefly
+        D.voiceHint.classList.add('show');
+        setTimeout(()=>D.voiceHint.classList.remove('show'),3500);
+      },1200);
     }
+  };
+})();
 
-    input.addEventListener('blur', commit);
-    input.addEventListener('keydown', e => {
-      if (e.key==='Enter')  { e.preventDefault(); input.blur(); }
-      if (e.key==='Escape') { input.value=orig; input.blur(); }
-    });
+/* ─── KEYBOARD SHORTCUT ─────────────────────── */
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();D.input.focus();D.input.select();}
+  if(e.key==='Escape'&&document.getElementById('voice-modal').classList.contains('open')){
+    document.getElementById('vs-cancel').click();
+  }
+});
+
+/* ═══════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════ */
+async function boot(){
+  D.heroDate.textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}).toUpperCase();
+
+  // 1. Instant local render
+  S.tasks=Cache.load();
+  render(true);
+  setSyncState('syncing','Connecting');
+
+  // 2. Fetch remote
+  try{
+    const remote=await DB.all();
+    S.tasks=remote;Cache.save(remote);
+    render(false);
+    setSyncState('online','Live sync');
+    subscribeRT();
+  }catch(err){
+    console.warn('Supabase:',err);
+    setSyncState('offline','Offline mode');
   }
 
-  /* ────────────────────────────────────────────────────────
-     EVENT: DELETE TASK
-     ──────────────────────────────────────────────────────── */
-  async function deleteTask(id, el) {
-    Anim.remove(el, async () => {
-      State.tasks = State.tasks.filter(t=>t.id!==id);
-      Cache.save(State.tasks);
-      updateStats();
-      toast('🗑 Deleted');
-      if (State.online) {
-        try { await DB.remove(id); }
-        catch { toast('⚠️ Sync failed — deletion queued', 2500); }
-      }
-    });
-  }
+  // 3. Voice
+  Voice.init();
+}
 
-  /* ────────────────────────────────────────────────────────
-     EVENT DELEGATION — task list interactions
-     ──────────────────────────────────────────────────────── */
-  DOM.taskList.addEventListener('click', e => {
-    const item = e.target.closest('.task-item');
-    if (!item) return;
-    const id = item.dataset.id;
-    if (e.target.closest('.task-check'))    toggleDone(id, item);
-    else if (e.target.closest('.action-btn.edit')) startEdit(id, item);
-    else if (e.target.closest('.action-btn.del'))  deleteTask(id, item);
-  });
+boot();
 
-  /* ────────────────────────────────────────────────────────
-     EVENT: ADD BUTTON + ENTER KEY
-     ──────────────────────────────────────────────────────── */
-  DOM.addBtn.addEventListener('click', addTask);
-  DOM.taskInput.addEventListener('keydown', e => { if (e.key==='Enter') { e.preventDefault(); addTask(); } });
-
-  /* ────────────────────────────────────────────────────────
-     EVENT: FILTER TABS
-     ──────────────────────────────────────────────────────── */
-  DOM.filterTabs.addEventListener('click', e => {
-    const tab = e.target.closest('.filter-tab');
-    if (!tab) return;
-    document.querySelectorAll('.filter-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
-    tab.classList.add('active'); tab.setAttribute('aria-selected','true');
-    State.filter = tab.dataset.filter;
-    render();
-  });
-
-  /* ────────────────────────────────────────────────────────
-     EVENT: PRIORITY SELECTOR
-     ──────────────────────────────────────────────────────── */
-  DOM.priorityBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      DOM.priorityBtns.forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      State.priority = btn.dataset.p;
-    });
-  });
-
-  /* ────────────────────────────────────────────────────────
-     KEYBOARD SHORTCUT — ⌘K / Ctrl+K to focus input
-     ──────────────────────────────────────────────────────── */
-  document.addEventListener('keydown', e => {
-    if ((e.metaKey||e.ctrlKey) && e.key==='k') { e.preventDefault(); DOM.taskInput.focus(); DOM.taskInput.select(); }
-  });
-
-  /* ────────────────────────────────────────────────────────
-     BOOT — Init sequence
-     ──────────────────────────────────────────────────────── */
-  async function boot() {
-    DOM.dateDisplay.textContent = Utils.dateDisplay();
-
-    // 1. Immediately render from local cache (instant perceived load)
-    State.tasks = Cache.load();
-    render(true);
-    Banner.set('syncing', 'Connecting to cloud…');
-
-    // 2. Fetch latest from Supabase
-    try {
-      const remote = await DB.fetchAll();
-      State.tasks  = remote;
-      Cache.save(remote);
-      render(false);
-      Banner.set('online', '⚡ Live — changes sync across all devices');
-
-      // 3. Subscribe to Realtime
-      subscribeRealtime();
-
-    } catch (err) {
-      console.warn('Supabase unavailable:', err.message);
-      Banner.set('offline', 'Offline — showing cached tasks');
-    }
-  }
-
-  boot();
-
-  /* ────────────────────────────────────────────────────────
-     SERVICE WORKER — Offline shell caching
-     ──────────────────────────────────────────────────────── */
-  if ('serviceWorker' in navigator) {
-    const swCode = `
-      const CACHE='meridian-v2';
-      self.addEventListener('install',e=>{
-        e.waitUntil(caches.open(CACHE).then(c=>c.addAll([self.location.href])));
-        self.skipWaiting();
-      });
-      self.addEventListener('activate',e=>{
-        e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
-        self.clients.claim();
-      });
-      self.addEventListener('fetch',e=>{
-        e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));
-      });
-    `;
-    const swURL = URL.createObjectURL(new Blob([swCode],{type:'application/javascript'}));
-    navigator.serviceWorker.register(swURL).catch(()=>{});
-  }
-  </script>
+/* ─── SERVICE WORKER ──────────────────────── */
+if('serviceWorker' in navigator){
+  const sw=`const C='mrd-v3';self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll([self.location.href])));self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))));self.clients.claim();});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));});`;
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
+}
+</script>
 </body>
 </html>
